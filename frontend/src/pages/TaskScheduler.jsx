@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Clock, Repeat, Calendar as CalendarIcon, Grid, List, CheckCircle2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -9,10 +10,14 @@ import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 
 function TaskScheduler() {
   const { userProfile } = useAuth();
+  const location = useLocation();
   const [tasks, setTasks] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [viewMode, setViewMode] = useState('list'); // Default to list view when showing today's tasks
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
+  
+  // Check if we should show today's tasks (from dashboard)
+  const showTodayTasks = location.state?.showToday || false;
   
   // Form states
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -24,8 +29,26 @@ function TaskScheduler() {
   
   useEffect(() => {
     // In a real app, this would fetch from Firestore
-    setTasks(dummyTasks);
-  }, []);
+    const allTasks = dummyTasks;
+    
+    // If showTodayTasks is true, filter for today's tasks
+    if (showTodayTasks) {
+      const today = new Date();
+      const todayDay = today.getDay(); // 0-6 for Sunday-Saturday
+      
+      const todaysTasks = allTasks.filter(task => {
+        // For daily tasks
+        if (task.schedule === 'daily') return true;
+        
+        // For weekly tasks, check if today is one of the scheduled days
+        return task.daysOfWeek.includes(todayDay);
+      });
+      
+      setTasks(todaysTasks);
+    } else {
+      setTasks(allTasks);
+    }
+  }, [showTodayTasks]);
   
   const openAddModal = () => {
     setNewTaskTitle('');

@@ -82,8 +82,7 @@ export const api = {
   deleteTask: (id, userId) => apiRequest('DELETE', `/tasks/${id}`, { userId }),
 
   // Reviews
-  getReviews: (productId) => apiRequest('GET', `/reviews/${productId}`),
+  getReviews: () => apiRequest('GET', '/reviews'),
   createReview: (data) => apiRequest('POST', '/reviews', data),
-  updateReview: (id, data) => apiRequest('PATCH', `/reviews/${id}`, data),
-  deleteReview: (id, userId) => apiRequest('DELETE', `/reviews/${id}`, { userId }),
+  markReviewHelpful: (reviewId) => apiRequest('POST', `/reviews/${reviewId}/helpful`),
 }; 

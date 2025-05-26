@@ -3,7 +3,9 @@ import { Plus, Search, Star, ChevronDown, X, AlertTriangle } from 'lucide-react'
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { dummyReviews, dummyProducts, dummyIngredients } from '../data/dummyData';
+import Toast from '../components/ui/Toast';
+import { api } from '../utils/api';
+import { dummyProducts, dummyIngredients } from '../data/dummyData';
 
 function Reviews() {
   const [reviews, setReviews] = useState([]);
@@ -12,6 +14,9 @@ function Reviews() {
   const [showAddReviewModal, setShowAddReviewModal] = useState(false);
   const [showIngredientModal, setShowIngredientModal] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
   
   // Form states
   const [newReviewProduct, setNewReviewProduct] = useState('');
@@ -20,10 +25,23 @@ function Reviews() {
   const [newReviewComment, setNewReviewComment] = useState('');
   
   useEffect(() => {
-    // In a real app, this would fetch from Firestore
-    setReviews(dummyReviews);
+    fetchReviews();
     setIngredients(dummyIngredients);
   }, []);
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const fetchedReviews = await api.getReviews();
+      setReviews(fetchedReviews);
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+      setError('Failed to load reviews');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const openAddReviewModal = () => {
     setNewReviewProduct('');
@@ -46,27 +64,49 @@ function Reviews() {
     setShowIngredientModal(false);
   };
   
-  const handleAddReview = (e) => {
+  const handleAddReview = async (e) => {
     e.preventDefault();
     
-    // In a real app, this would save to Firestore
-    const productName = dummyProducts.find(p => p.id === newReviewProduct)?.name || '';
-    
-    const newReview = {
-      id: `review-${Date.now()}`,
-      productId: newReviewProduct,
-      productName: productName,
-      userId: 'demo-user',
-      username: 'Demo User',
-      rating: newReviewRating,
-      title: newReviewTitle,
-      comment: newReviewComment,
-      createdAt: new Date().toISOString(),
-      helpfulCount: 0
-    };
-    
-    setReviews([...reviews, newReview]);
-    closeAddReviewModal();
+    try {
+      const product = dummyProducts.find(p => p.id === newReviewProduct);
+      
+      const reviewData = {
+        productId: newReviewProduct,
+        rating: newReviewRating,
+        title: newReviewTitle,
+        comment: newReviewComment
+      };
+      
+      const newReview = await api.createReview(reviewData);
+      setReviews([newReview, ...reviews]);
+      closeAddReviewModal();
+      
+      setToast({
+        type: 'success',
+        message: 'Review added successfully!'
+      });
+    } catch (err) {
+      console.error('Error adding review:', err);
+      setToast({
+        type: 'error',
+        message: 'Failed to add review. Please try again.'
+      });
+    }
+  };
+
+  const handleHelpfulClick = async (reviewId) => {
+    try {
+      const updatedReview = await api.markReviewHelpful(reviewId);
+      setReviews(reviews.map(review => 
+        review._id === reviewId ? updatedReview : review
+      ));
+    } catch (err) {
+      console.error('Error marking review as helpful:', err);
+      setToast({
+        type: 'error',
+        message: 'Failed to mark review as helpful'
+      });
+    }
   };
   
   const getProductById = (productId) => {
@@ -86,9 +126,43 @@ function Reviews() {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lavender-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading reviews...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">⚠️</div>
+            <p className="text-gray-800 font-medium mb-2">Error loading reviews</p>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="pb-12">
         <header className="flex items-center justify-between mb-8">
           <div>
@@ -144,7 +218,7 @@ function Reviews() {
                   
                   return (
                     <Card 
-                      key={review.id} 
+                      key={review._id} 
                       className="hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start">
@@ -178,7 +252,10 @@ function Reviews() {
                             <div className="text-sm text-gray-500">
                               By {review.username} • {new Date(review.createdAt).toLocaleDateString()}
                             </div>
-                            <button className="text-sm text-lavender-600 hover:text-lavender-700 flex items-center">
+                            <button 
+                              className="text-sm text-lavender-600 hover:text-lavender-700 flex items-center"
+                              onClick={() => handleHelpfulClick(review._id)}
+                            >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
                               </svg>

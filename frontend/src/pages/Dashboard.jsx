@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Star, Package, CheckCircle } from 'lucide-react';
 import { User, Settings, Droplet } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -11,6 +12,7 @@ import { dummySuggestions } from '../data/dummyData';
 
 function Dashboard() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     activities: [],
     upcomingTasks: [],
@@ -76,6 +78,10 @@ function Dashboard() {
         message: 'Failed to add routine. Please try again.'
       });
     }
+  };
+
+  const handleViewAllTasks = () => {
+    navigate('/tasks', { state: { showToday: true } });
   };
 
   function formatActivityText(activity) {
@@ -195,7 +201,7 @@ function Dashboard() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => {/* Navigate to tasks */}}
+                  onClick={handleViewAllTasks}
                 >
                   View All
                 </Button>

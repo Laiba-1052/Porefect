@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const routineRoutes = require('./routes/routineRoutes');
 const productRoutes = require('./routes/productRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -29,6 +30,7 @@ app.use(express.json());
 app.use('/api/routines', routineRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Basic test route
 app.get('/api/test', (req, res) => {
