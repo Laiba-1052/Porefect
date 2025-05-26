@@ -7,6 +7,7 @@ const routineRoutes = require('./routes/routineRoutes');
 const productRoutes = require('./routes/productRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const taskRoutes = require('./routes/taskRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/routines', routineRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Basic test route
 app.get('/api/test', (req, res) => {
