@@ -13,14 +13,22 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // Vite's default port
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Routes
 app.use('/api/routines', require('./routes/routineRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
-app.use('/api/tasks', require('./routes/taskRoutes'));
-app.use('/api/reviews', require('./routes/reviewRoutes'));
+
+// Basic test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Backend is working!' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

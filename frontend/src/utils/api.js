@@ -26,13 +26,34 @@ const apiRequest = async (method, endpoint, data = null) => {
       method,
       url: `${BASE_URL}${endpoint}`,
       headers,
+      withCredentials: true,
       ...(data && { data }),
     };
+
+    console.log(`Making ${method} request to ${endpoint}`, { config });
 
     const response = await axios(config);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error('API Request Error:', {
+      endpoint,
+      method,
+      error: error.response?.data || error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText
+    });
+
+    if (error.response?.status === 404) {
+      throw new Error(`Resource not found: ${endpoint}`);
+    } else if (error.response?.status === 401) {
+      throw new Error('Unauthorized: Please log in');
+    } else if (error.response?.status === 403) {
+      throw new Error('Forbidden: You do not have permission to access this resource');
+    } else if (!error.response) {
+      throw new Error('Network error: Please check your connection or try again later');
+    }
+
+    throw error.response?.data || error;
   }
 };
 

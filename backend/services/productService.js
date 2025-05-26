@@ -1,5 +1,3 @@
-import { api } from '../utils/api';
-
 const Product = require('../models/Product');
 
 const productService = {
