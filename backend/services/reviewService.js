@@ -2,10 +2,21 @@ const Review = require('../models/Review');
 
 const reviewService = {
   // Get all reviews
-  async getReviews() {
+  async getReviews(searchQuery = '') {
     try {
-      console.log('Getting all reviews');
-      const reviews = await Review.find().sort({ createdAt: -1 });
+      console.log('Getting reviews with search query:', searchQuery);
+      let query = {};
+      
+      if (searchQuery) {
+        query = {
+          $or: [
+            { title: { $regex: searchQuery, $options: 'i' } },
+            { comment: { $regex: searchQuery, $options: 'i' } }
+          ]
+        };
+      }
+      
+      const reviews = await Review.find(query).sort({ createdAt: -1 });
       console.log('Found reviews:', reviews);
       return reviews;
     } catch (error) {

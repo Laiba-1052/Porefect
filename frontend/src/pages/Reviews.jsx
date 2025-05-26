@@ -29,17 +29,34 @@ function Reviews() {
     setIngredients(dummyIngredients);
   }, []);
 
-  const fetchReviews = async () => {
+  const fetchReviews = async (query = '') => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedReviews = await api.getReviews();
+      const fetchedReviews = await api.getReviews(query);
       setReviews(fetchedReviews);
     } catch (err) {
       console.error('Error fetching reviews:', err);
       setError('Failed to load reviews');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Handle search submission
+  const handleSearch = () => {
+    fetchReviews(searchQuery);
+  };
+
+  // Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
     }
   };
   
@@ -185,17 +202,28 @@ function Reviews() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search size={18} className="text-gray-400" />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={18} className="text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
+                    placeholder="Search reviews..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    onKeyPress={handleKeyPress}
+                  />
                 </div>
-                <input
-                  type="text"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                  placeholder="Search reviews..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                <Button
+                  variant="primary"
+                  onClick={handleSearch}
+                  className="flex items-center gap-2"
+                >
+                  <Search size={18} />
+                  Search
+                </Button>
               </div>
             </div>
             

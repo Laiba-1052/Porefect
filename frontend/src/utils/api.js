@@ -82,7 +82,7 @@ export const api = {
   deleteTask: (id, userId) => apiRequest('DELETE', `/tasks/${id}`, { userId }),
 
   // Reviews
-  getReviews: () => apiRequest('GET', '/reviews'),
+  getReviews: (searchQuery = '') => apiRequest('GET', `/reviews${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`),
   createReview: (data) => apiRequest('POST', '/reviews', data),
   markReviewHelpful: (reviewId) => apiRequest('POST', `/reviews/${reviewId}/helpful`),
 }; 

@@ -5,7 +5,8 @@ const reviewService = require('../services/reviewService');
 // Get all reviews
 router.get('/', async (req, res) => {
   try {
-    const reviews = await reviewService.getReviews();
+    const { search } = req.query;
+    const reviews = await reviewService.getReviews(search);
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
