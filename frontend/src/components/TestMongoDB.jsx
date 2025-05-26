@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { routineService } from '../services/routineService';
-import { productService } from '../services/productService';
+import { api } from '../utils/api';
 
 function TestMongoDB() {
   const [routines, setRoutines] = useState([]);
@@ -19,8 +18,8 @@ function TestMongoDB() {
 
         // Fetch both routines and products
         const [routinesData, productsData] = await Promise.all([
-          routineService.getUserRoutines(testUserId),
-          productService.getUserProducts(testUserId)
+          api.getRoutines(testUserId),
+          api.getProducts(testUserId)
         ]);
 
         setRoutines(routinesData);

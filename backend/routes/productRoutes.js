@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product');
+const productService = require('../services/productService');
 
 // Get all products for a user
 router.get('/:userId', async (req, res) => {
   try {
-    const products = await Product.find({ userId: req.params.userId });
+    const products = await productService.getUserProducts(req.params.userId);
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -14,9 +14,8 @@ router.get('/:userId', async (req, res) => {
 
 // Create a new product
 router.post('/', async (req, res) => {
-  const product = new Product(req.body);
   try {
-    const newProduct = await product.save();
+    const newProduct = await productService.createProduct(req.body);
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -26,44 +25,36 @@ router.post('/', async (req, res) => {
 // Update a product
 router.patch('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    if (product.userId !== req.body.userId) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    Object.keys(req.body).forEach(key => {
-      if (key !== 'userId') {
-        product[key] = req.body[key];
-      }
-    });
-
-    const updatedProduct = await product.save();
+    const updatedProduct = await productService.updateProduct(
+      req.params.id,
+      req.body.userId,
+      req.body
+    );
     res.json(updatedProduct);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    if (error.message === 'Product not found') {
+      res.status(404).json({ message: error.message });
+    } else if (error.message === 'Not authorized') {
+      res.status(403).json({ message: error.message });
+    } else {
+      res.status(400).json({ message: error.message });
+    }
   }
 });
 
 // Delete a product
 router.delete('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-
-    if (product.userId !== req.body.userId) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    await product.deleteOne();
-    res.json({ message: 'Product deleted' });
+    const result = await productService.deleteProduct(req.params.id, req.body.userId);
+    res.json(result);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.message === 'Product not found') {
+      res.status(404).json({ message: error.message });
+    } else if (error.message === 'Not authorized') {
+      res.status(403).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: error.message });
+    }
   }
 });
 
