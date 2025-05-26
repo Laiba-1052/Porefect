@@ -71,6 +71,10 @@ export const api = {
   updateProduct: (id, data) => apiRequest('PATCH', `/products/${id}`, data),
   deleteProduct: (id, userId) => apiRequest('DELETE', `/products/${id}`, { userId }),
 
+  // Dashboard
+  getDashboard: (userId) => apiRequest('GET', `/dashboard/${userId}`),
+  addSuggestedRoutine: (data) => apiRequest('POST', '/dashboard/add-suggested-routine', data),
+
   // Tasks
   getTasks: (userId) => apiRequest('GET', `/tasks/${userId}`),
   createTask: (data) => apiRequest('POST', '/tasks', data),

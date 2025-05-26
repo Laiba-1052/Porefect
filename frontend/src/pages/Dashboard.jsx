@@ -4,35 +4,79 @@ import { User, Settings, Droplet } from 'lucide-react';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Toast from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  dummyActivities, 
-  dummyRoutines, 
-  dummySuggestions, 
-  dummyTasks, 
-  dummyProducts 
-} from '../data/dummyData';
+import { api } from '../utils/api';
+import { dummySuggestions } from '../data/dummyData';
 
 function Dashboard() {
-  const { userProfile } = useAuth();
-  const [activities, setActivities] = useState([]);
+  const { currentUser } = useAuth();
+  const [dashboardData, setDashboardData] = useState({
+    activities: [],
+    upcomingTasks: [],
+    routinesCount: 0,
+    productsCount: 0,
+    tasksCount: 0,
+    completedCount: 0
+  });
   const [suggestedRoutines, setSuggestedRoutines] = useState([]);
-  const [upcomingTasks, setUpcomingTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    // In a real app, this would fetch from Firestore
-    setActivities(dummyActivities);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    // Get suggested routines based on user skin type
-    const skinType = userProfile?.skinType || 'combination';
-    setSuggestedRoutines(dummySuggestions[skinType] || dummySuggestions['combination']);
+        // For demo purposes, use demo-user-123
+        const userId = 'demo-user-123';
+        
+        // Fetch dashboard data using the new endpoint
+        const response = await api.getDashboard(userId);
+        setDashboardData(response);
 
-    // Get upcoming tasks (would normally filter in Firestore query)
-    const today = new Date();
-    const upcoming = dummyTasks.filter(task => !task.completed)
-      .sort((a, b) => new Date(a.time || '23:59') - new Date(b.time || '23:59'));
-    setUpcomingTasks(upcoming.slice(0, 3));
-  }, [userProfile]);
+        // Get suggested routines based on user skin type
+        const skinType = currentUser?.skinType || 'combination';
+        setSuggestedRoutines(dummySuggestions[skinType] || dummySuggestions['combination']);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.message || 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [currentUser?.skinType]);
+
+  const handleAddSuggestedRoutine = async (routine) => {
+    try {
+      await api.addSuggestedRoutine({
+        userId: 'demo-user-123', // For demo purposes
+        routineName: routine.name,
+        steps: routine.steps
+      });
+
+      // Refresh dashboard data after adding routine
+      const updatedDashboard = await api.getDashboard('demo-user-123');
+      setDashboardData(updatedDashboard);
+
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `${routine.name} has been added to your routines!`
+      });
+    } catch (err) {
+      console.error('Error adding routine:', err);
+      // Show error toast
+      setToast({
+        type: 'error',
+        message: 'Failed to add routine. Please try again.'
+      });
+    }
+  };
 
   function formatActivityText(activity) {
     switch (activity.type) {
@@ -62,12 +106,46 @@ function Dashboard() {
     }
   }
 
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lavender-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="text-red-600 mb-4">⚠️</div>
+            <p className="text-gray-800 font-medium mb-2">Error loading dashboard</p>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="pb-12">
         <header className="mb-8">
           <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">
-            Welcome, {userProfile?.username || 'there'}!
+            Welcome, {currentUser?.username || 'there'}!
           </h1>
           <p className="text-gray-600">
             Here's an overview of your skincare journey
@@ -81,11 +159,11 @@ function Dashboard() {
               title="Recent Activity" 
               className="h-full"
             >
-              {activities.length === 0 ? (
+              {dashboardData.activities.length === 0 ? (
                 <p className="text-gray-500 italic">No recent activities found.</p>
               ) : (
                 <div className="space-y-4">
-                  {activities.slice(0, 5).map((activity) => (
+                  {dashboardData.activities.map((activity) => (
                     <div key={activity.id} className="flex items-start pb-4 border-b border-gray-100 last:border-0">
                       <div className="h-10 w-10 rounded-full bg-lavender-100 flex items-center justify-center flex-shrink-0">
                         {activity.type === 'routine_completed' && (
@@ -124,11 +202,11 @@ function Dashboard() {
               }
               className="h-full"
             >
-              {upcomingTasks.length === 0 ? (
+              {dashboardData.upcomingTasks.length === 0 ? (
                 <p className="text-gray-500 italic">No tasks scheduled for today.</p>
               ) : (
                 <div className="space-y-3">
-                  {upcomingTasks.map((task) => (
+                  {dashboardData.upcomingTasks.map((task) => (
                     <div 
                       key={task.id} 
                       className="flex items-center p-3 border border-gray-100 rounded-lg hover:bg-lavender-50 transition-colors"
@@ -140,8 +218,12 @@ function Dashboard() {
                         <p className="font-medium text-gray-800">{task.title}</p>
                         <div className="flex items-center text-xs text-gray-500">
                           <Calendar size={14} className="mr-1" />
-                          <span>{task.schedule === 'daily' ? 'Daily' : 'Weekly'}</span>
-                          {task.time && <span className="ml-2">{task.time}</span>}
+                          <span>{task.schedule}</span>
+                          {task.lastCompleted && (
+                            <span className="ml-2">
+                              Last done: {new Date(task.lastCompleted).toLocaleDateString()}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <button 
@@ -172,7 +254,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-500">Routines</p>
-                  <p className="text-2xl font-semibold">{dummyRoutines.length}</p>
+                  <p className="text-2xl font-semibold">{dashboardData.routinesCount}</p>
                 </div>
               </div>
             </div>
@@ -186,7 +268,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-500">Products</p>
-                  <p className="text-2xl font-semibold">{dummyProducts.length}</p>
+                  <p className="text-2xl font-semibold">{dashboardData.productsCount}</p>
                 </div>
               </div>
             </div>
@@ -200,7 +282,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-500">Tasks</p>
-                  <p className="text-2xl font-semibold">{dummyTasks.length}</p>
+                  <p className="text-2xl font-semibold">{dashboardData.tasksCount}</p>
                 </div>
               </div>
             </div>
@@ -214,9 +296,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-gray-500">Completed</p>
-                  <p className="text-2xl font-semibold">
-                    {dummyTasks.filter(t => t.completed).length}
-                  </p>
+                  <p className="text-2xl font-semibold">{dashboardData.completedCount}</p>
                 </div>
               </div>
             </div>
@@ -227,7 +307,7 @@ function Dashboard() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-display font-semibold text-gray-800">
-              Suggested for Your {userProfile?.skinType || 'Combination'} Skin
+              Suggested for Your {currentUser?.skinType || 'Combination'} Skin
             </h2>
           </div>
           
@@ -260,7 +340,11 @@ function Dashboard() {
                 </div>
                 
                 <div className="mt-4">
-                  <Button variant="outline" fullWidth>
+                  <Button 
+                    variant="outline" 
+                    fullWidth
+                    onClick={() => handleAddSuggestedRoutine(routine)}
+                  >
                     Add to My Routines
                   </Button>
                 </div>
