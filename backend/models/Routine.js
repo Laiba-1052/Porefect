@@ -15,10 +15,26 @@ const routineSchema = new mongoose.Schema({
     default: '',
   },
   products: [{
-    name: String,
-    category: String,
-    frequency: String,
-    notes: String,
+    name: {
+      type: String,
+      required: true
+    },
+    category: {
+      type: String,
+      default: ''
+    },
+    frequency: {
+      type: String,
+      default: 'daily'
+    },
+    notes: {
+      type: String,
+      default: ''
+    },
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
+    }
   }],
   schedule: {
     type: String,
@@ -29,6 +45,10 @@ const routineSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  lastCompleted: {
+    type: Date,
+    default: null
+  }
 }, {
   timestamps: true,
 });
