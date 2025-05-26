@@ -1,0 +1,57 @@
+[{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd281"
+  },
+  "productId": "product-1",
+  "userId": "demo-user-123",
+  "username": "Sarah",
+  "rating": 4,
+  "title": "Great gentle cleanser",
+  "comment": "This cleanser is very gentle and doesn't strip my skin. I use it both morning and night, and my skin feels clean but not tight afterward. Highly recommend for sensitive skin types!",
+  "helpfulCount": 5,
+  "createdAt": {
+    "$date": "2023-07-14T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.839Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd282"
+  },
+  "productId": "product-2",
+  "userId": "demo-user-123",
+  "username": "Sarah",
+  "rating": 5,
+  "title": "Holy grail toner",
+  "comment": "This has become a staple in my routine. The witch hazel helps control oil without being drying, and I love that it's alcohol-free. My skin looks clearer and more balanced since I started using it.",
+  "helpfulCount": 7,
+  "createdAt": {
+    "$date": "2023-07-19T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.839Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd283"
+  },
+  "productId": "product-5",
+  "userId": "demo-user-123",
+  "username": "Sarah",
+  "rating": 5,
+  "title": "Best Sunscreen Ever",
+  "comment": "I've tried so many sunscreens that left a white cast or felt greasy, but this one is perfect! It's lightweight, absorbs quickly, and works under makeup. Plus, no white cast on my medium skin tone.",
+  "helpfulCount": 12,
+  "createdAt": {
+    "$date": "2023-08-04T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.839Z"
+  }
+}]

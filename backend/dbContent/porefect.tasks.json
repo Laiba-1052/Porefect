@@ -1,0 +1,136 @@
+[{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd27b"
+  },
+  "userId": "demo-user-123",
+  "title": "Morning Routine",
+  "type": "routine",
+  "routineId": "routine-1",
+  "schedule": "daily",
+  "time": "07:00",
+  "daysOfWeek": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "completed": false,
+  "lastCompleted": {
+    "$date": "2023-09-14T19:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2023-06-14T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.782Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd27c"
+  },
+  "userId": "demo-user-123",
+  "title": "Evening Routine",
+  "type": "routine",
+  "routineId": "routine-2",
+  "schedule": "daily",
+  "time": "21:00",
+  "daysOfWeek": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "completed": false,
+  "lastCompleted": {
+    "$date": "2023-09-13T19:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2023-06-14T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.782Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd27d"
+  },
+  "userId": "demo-user-123",
+  "title": "Clay Mask",
+  "type": "routine",
+  "routineId": "routine-3",
+  "schedule": "weekly",
+  "time": "19:00",
+  "daysOfWeek": [
+    0
+  ],
+  "completed": false,
+  "lastCompleted": {
+    "$date": "2023-09-09T19:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2023-07-09T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.782Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd27e"
+  },
+  "userId": "demo-user-123",
+  "title": "Replace Pillowcase",
+  "type": "task",
+  "schedule": "weekly",
+  "time": "",
+  "daysOfWeek": [
+    0,
+    3
+  ],
+  "completed": true,
+  "lastCompleted": {
+    "$date": "2023-09-12T19:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2023-07-31T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.782Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd27f"
+  },
+  "userId": "demo-user-123",
+  "title": "Clean Makeup Brushes",
+  "type": "task",
+  "schedule": "weekly",
+  "time": "",
+  "daysOfWeek": [
+    6
+  ],
+  "completed": false,
+  "lastCompleted": {
+    "$date": "2023-09-08T19:00:00.000Z"
+  },
+  "createdAt": {
+    "$date": "2023-07-31T19:00:00.000Z"
+  },
+  "__v": 0,
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.782Z"
+  }
+}]

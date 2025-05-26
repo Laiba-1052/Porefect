@@ -1,0 +1,155 @@
+[{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd262"
+  },
+  "userId": "demo-user-123",
+  "name": "Morning Routine",
+  "description": "",
+  "products": [
+    {
+      "name": "Cleanser",
+      "notes": "Use lukewarm water and gentle circular motions.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd263"
+      }
+    },
+    {
+      "name": "Toner",
+      "notes": "Apply with cotton pad.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd264"
+      }
+    },
+    {
+      "name": "Vitamin C Serum",
+      "notes": "Use 3-4 drops for entire face.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd265"
+      }
+    },
+    {
+      "name": "Moisturizer",
+      "notes": "",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd266"
+      }
+    },
+    {
+      "name": "Sunscreen",
+      "notes": "Apply generously and reapply every 2 hours if outside.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd267"
+      }
+    }
+  ],
+  "schedule": "morning",
+  "isActive": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-05-26T17:58:15.659Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.659Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd268"
+  },
+  "userId": "demo-user-123",
+  "name": "Evening Routine",
+  "description": "",
+  "products": [
+    {
+      "name": "Oil Cleanser",
+      "notes": "Massage onto dry skin, then rinse.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd269"
+      }
+    },
+    {
+      "name": "Water-Based Cleanser",
+      "notes": "Second cleanse to remove any remaining residue.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd26a"
+      }
+    },
+    {
+      "name": "Exfoliant (2x weekly)",
+      "notes": "Use only twice a week.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd26b"
+      }
+    },
+    {
+      "name": "Toner",
+      "notes": "",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd26c"
+      }
+    },
+    {
+      "name": "Retinol Serum",
+      "notes": "Use every other night.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd26d"
+      }
+    },
+    {
+      "name": "Night Cream",
+      "notes": "Apply a thick layer.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd26e"
+      }
+    }
+  ],
+  "schedule": "evening",
+  "isActive": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-05-26T17:58:15.660Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.660Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6834abb7fd093c04045fd26f"
+  },
+  "userId": "demo-user-123",
+  "name": "Weekly Mask",
+  "description": "",
+  "products": [
+    {
+      "name": "Clay Mask",
+      "notes": "Apply to clean, damp skin. Avoid eye area. Leave for 10 minutes.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd270"
+      }
+    },
+    {
+      "name": "Rose Water Spray",
+      "notes": "Spritz generously after rinsing mask.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd271"
+      }
+    },
+    {
+      "name": "Hydrating Serum",
+      "notes": "Apply while skin is still damp from rose water.",
+      "_id": {
+        "$oid": "6834abb7fd093c04045fd272"
+      }
+    }
+  ],
+  "schedule": "both",
+  "isActive": true,
+  "__v": 0,
+  "createdAt": {
+    "$date": "2025-05-26T17:58:15.660Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-26T17:58:15.660Z"
+  }
+}]

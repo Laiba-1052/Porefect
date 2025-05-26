@@ -257,22 +257,6 @@ function ProductTracker() {
                     </div>
                   )}
                 </div>
-                
-                <div className="flex mt-4 pt-4 border-t border-gray-100 justify-between">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                  >
-                    Details
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    icon={<Clock size={16} />}
-                  >
-                    Log Use
-                  </Button>
-                </div>
               </Card>
             ))}
           </div>
