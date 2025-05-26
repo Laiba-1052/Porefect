@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import TestMongoDB from './components/TestMongoDB';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -52,6 +53,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/reviews" element={<Reviews />} />
+            <Route path="/test-mongodb" element={<TestMongoDB />} />
           </Routes>
         </div>
       </Router>

@@ -18,6 +18,9 @@ app.use(express.json());
 
 // Routes
 app.use('/api/routines', require('./routes/routineRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
