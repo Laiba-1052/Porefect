@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, ShoppingBag, Clock, Star, Calendar, AlertCircle } from 'lucide-react';
+import { Search, Filter, ShoppingBag, Clock, Star, Calendar, AlertCircle } from 'lucide-react';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { dummyProducts } from '../data/dummyData';
 import { format, differenceInDays } from 'date-fns';
+import productService from '../services/productService';
 
 function ProductTracker() {
   const { userProfile } = useAuth();
@@ -13,17 +12,8 @@ function ProductTracker() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
-  
-  // Form states
-  const [newProductName, setNewProductName] = useState('');
-  const [newProductBrand, setNewProductBrand] = useState('');
-  const [newProductCategory, setNewProductCategory] = useState('');
-  const [newProductPurchaseDate, setNewProductPurchaseDate] = useState('');
-  const [newProductExpiryDate, setNewProductExpiryDate] = useState('');
-  const [newProductSize, setNewProductSize] = useState('');
-  const [newProductPrice, setNewProductPrice] = useState('');
-  const [newProductNotes, setNewProductNotes] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const categories = [
     'Cleanser',
@@ -39,10 +29,24 @@ function ProductTracker() {
   ];
   
   useEffect(() => {
-    // In a real app, this would fetch from Firestore
-    setProducts(dummyProducts);
-    setFilteredProducts(dummyProducts);
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const userId = userProfile?.uid || 'demo-user-123';
+        const data = await productService.getUserProducts(userId);
+        setProducts(data);
+        setFilteredProducts(data);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [userProfile]);
   
   useEffect(() => {
     let filtered = products;
@@ -63,45 +67,6 @@ function ProductTracker() {
     setFilteredProducts(filtered);
   }, [searchQuery, categoryFilter, products]);
   
-  const openAddModal = () => {
-    setNewProductName('');
-    setNewProductBrand('');
-    setNewProductCategory('');
-    setNewProductPurchaseDate('');
-    setNewProductExpiryDate('');
-    setNewProductSize('');
-    setNewProductPrice('');
-    setNewProductNotes('');
-    setShowAddModal(true);
-  };
-  
-  const closeAddModal = () => {
-    setShowAddModal(false);
-  };
-  
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    
-    // In a real app, this would save to Firestore
-    const newProduct = {
-      id: `product-${Date.now()}`,
-      name: newProductName,
-      brand: newProductBrand,
-      category: newProductCategory,
-      userId: userProfile?.uid || 'demo-user',
-      purchaseDate: newProductPurchaseDate ? new Date(newProductPurchaseDate).toISOString() : null,
-      expiryDate: newProductExpiryDate ? new Date(newProductExpiryDate).toISOString() : null,
-      price: newProductPrice ? parseFloat(newProductPrice) : null,
-      size: newProductSize,
-      notes: newProductNotes,
-      imageUrl: 'https://images.pexels.com/photos/3785147/pexels-photo-3785147.jpeg?auto=compress&cs=tinysrgb&w=600', // Default placeholder
-      createdAt: new Date().toISOString()
-    };
-    
-    setProducts([...products, newProduct]);
-    closeAddModal();
-  };
-  
   const isProductExpiringSoon = (product) => {
     if (!product.expiryDate) return false;
     const expiryDate = new Date(product.expiryDate);
@@ -115,6 +80,30 @@ function ProductTracker() {
     return expiryDate < new Date();
   };
   
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lavender-500"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+          <div className="text-error-500 mb-4">
+            <AlertCircle size={48} />
+          </div>
+          <h2 className="text-xl font-medium text-gray-800 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </MainLayout>
+    );
+  }
+  
   return (
     <MainLayout>
       <div className="pb-12">
@@ -127,13 +116,6 @@ function ProductTracker() {
               Keep track of all your skincare products
             </p>
           </div>
-          <Button 
-            variant="primary"
-            icon={<Plus size={18} />}
-            onClick={openAddModal}
-          >
-            Add Product
-          </Button>
         </header>
         
         {/* Search and Filters */}
@@ -176,20 +158,13 @@ function ProductTracker() {
         {filteredProducts.length === 0 ? (
           <Card className="p-8 text-center">
             <h3 className="text-lg font-medium text-gray-700 mb-2">No products found</h3>
-            <p className="text-gray-500 mb-6">Add products to your collection or try a different search.</p>
-            <Button 
-              variant="primary"
-              icon={<Plus size={18} />}
-              onClick={openAddModal}
-            >
-              Add Product
-            </Button>
+            <p className="text-gray-500">Try a different search or filter.</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
               <Card
-                key={product.id}
+                key={product._id}
                 className="h-full hover:shadow-md transition-shadow"
               >
                 <div className="relative">
@@ -262,160 +237,6 @@ function ProductTracker() {
           </div>
         )}
       </div>
-      
-      {/* Add Product Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-800">Add New Product</h3>
-              <button 
-                className="text-gray-500 hover:text-gray-700"
-                onClick={closeAddModal}
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleAddProduct}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="productName">
-                    Product Name*
-                  </label>
-                  <input
-                    type="text"
-                    id="productName"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductName}
-                    onChange={(e) => setNewProductName(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="brand">
-                    Brand*
-                  </label>
-                  <input
-                    type="text"
-                    id="brand"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductBrand}
-                    onChange={(e) => setNewProductBrand(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="category">
-                    Category*
-                  </label>
-                  <select
-                    id="category"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductCategory}
-                    onChange={(e) => setNewProductCategory(e.target.value)}
-                    required
-                  >
-                    <option value="" disabled>Select a category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="size">
-                    Size
-                  </label>
-                  <input
-                    type="text"
-                    id="size"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductSize}
-                    onChange={(e) => setNewProductSize(e.target.value)}
-                    placeholder="e.g., 50ml, 1.7oz"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="price">
-                    Price
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    step="0.01"
-                    min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductPrice}
-                    onChange={(e) => setNewProductPrice(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="purchaseDate">
-                    Purchase Date
-                  </label>
-                  <input
-                    type="date"
-                    id="purchaseDate"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductPurchaseDate}
-                    onChange={(e) => setNewProductPurchaseDate(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expiryDate">
-                    Expiry Date
-                  </label>
-                  <input
-                    type="date"
-                    id="expiryDate"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                    value={newProductExpiryDate}
-                    onChange={(e) => setNewProductExpiryDate(e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="notes">
-                  Notes
-                </label>
-                <textarea
-                  id="notes"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
-                  rows="3"
-                  value={newProductNotes}
-                  onChange={(e) => setNewProductNotes(e.target.value)}
-                  placeholder="Any additional notes about this product..."
-                ></textarea>
-              </div>
-              
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={closeAddModal}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                >
-                  Add Product
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </MainLayout>
   );
 }

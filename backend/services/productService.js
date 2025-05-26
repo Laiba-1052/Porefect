@@ -4,7 +4,7 @@ const productService = {
   // Get all products for a user
   async getUserProducts(userId) {
     try {
-      return await Product.find({ userId });
+      return await Product.find({ userId }).sort({ createdAt: -1 });
     } catch (error) {
       throw error;
     }
