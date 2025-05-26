@@ -3,6 +3,7 @@ import { Plus, Trash2, Pencil, Sun, Moon, Clock, X, CheckCircle2 } from 'lucide-
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Toast from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../utils/api';
 
@@ -15,6 +16,7 @@ function RoutineLogger() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddStepModal, setShowAddStepModal] = useState(false);
   const [currentRoutine, setCurrentRoutine] = useState(null);
+  const [toast, setToast] = useState(null);
   
   // Form states
   const [newRoutineName, setNewRoutineName] = useState('');
@@ -157,10 +159,27 @@ function RoutineLogger() {
       setRoutines(routines.map(routine => 
         routine._id === routineId ? updatedRoutine : routine
       ));
+
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `${routineToUpdate.name} has been completed!`
+      });
     } catch (err) {
       console.error('Error completing routine:', err);
-      setError('Failed to complete routine: ' + err.message);
+      setToast({
+        type: 'error',
+        message: 'Failed to complete routine: ' + err.message
+      });
     }
+  };
+  
+  // Helper function to check if routine was completed today
+  const wasCompletedToday = (routine) => {
+    if (!routine.lastCompleted) return false;
+    const lastCompleted = new Date(routine.lastCompleted);
+    const today = new Date();
+    return lastCompleted.toDateString() === today.toDateString();
   };
   
   const getRoutineIcon = (schedule) => {
@@ -207,6 +226,13 @@ function RoutineLogger() {
   
   return (
     <MainLayout>
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="pb-12">
         <header className="flex items-center justify-between mb-8">
           <div>
@@ -294,13 +320,13 @@ function RoutineLogger() {
                     Add Step
                   </Button>
                   <Button 
-                    variant="primary" 
+                    variant={wasCompletedToday(routine) ? "success" : "primary"}
                     size="sm"
                     icon={<CheckCircle2 size={16} />}
                     onClick={() => handleCompleteRoutine(routine._id)}
                     fullWidth
                   >
-                    Complete
+                    {wasCompletedToday(routine) ? "Complete Again" : "Complete"}
                   </Button>
                 </div>
               </Card>
