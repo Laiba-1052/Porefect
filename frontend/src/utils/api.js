@@ -82,8 +82,8 @@ export const api = {
   createTask: (data) => apiRequest('POST', '/tasks', data),
   updateTask: (id, data) => apiRequest('PATCH', `/tasks/${id}`, data),
   deleteTask: (id, userId) => apiRequest('DELETE', `/tasks/${id}`, { userId }),
-  completeTask: (taskId, userId, date) => apiRequest('POST', `/tasks/${taskId}/complete`, { userId, date }),
-  uncompleteTask: (taskId, userId, date) => apiRequest('POST', `/tasks/${taskId}/uncomplete`, { userId, date }),
+  completeTask: (taskId, userId) => apiRequest('POST', `/tasks/${taskId}/complete`, { userId }),
+  uncompleteTask: (taskId, userId) => apiRequest('POST', `/tasks/${taskId}/uncomplete`, { userId }),
 
   // Reviews
   getReviews: (searchQuery = '') => apiRequest('GET', `/reviews${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`),

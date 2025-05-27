@@ -45,16 +45,16 @@ function Tasks() {
   const handleToggleTask = async (taskId, currentStatus) => {
     try {
       const userId = userProfile?.uid || 'demo-user-123';
-      const formattedDate = selectedDate.toISOString().split('T')[0];
       
       // Handle regular task completion
       if (currentStatus) {
-        await api.uncompleteTask(taskId, userId, formattedDate);
+        await api.uncompleteTask(taskId, userId);
       } else {
-        await api.completeTask(taskId, userId, formattedDate);
+        await api.completeTask(taskId, userId);
       }
 
       // Refresh tasks after toggling
+      const formattedDate = selectedDate.toISOString().split('T')[0];
       const updatedTasks = await api.getTasksForDate(userId, formattedDate);
       setTasks(updatedTasks);
     } catch (err) {
