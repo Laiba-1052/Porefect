@@ -86,15 +86,33 @@ function Dashboard() {
 
   const handleToggleTaskCompletion = async (taskId, currentStatus) => {
     try {
-      await api.toggleTaskCompletion({
-        taskId,
-        userId: 'demo-user-123', // For demo purposes
-        completed: !currentStatus
-      });
+      const userId = 'demo-user-123'; // For demo purposes
+      
+      if (taskId.startsWith('routine-')) {
+        // Handle routine completion through the API
+        await api.toggleRoutineCompletion({
+          routineId: taskId.replace('routine-', ''),
+          userId,
+          completed: !currentStatus
+        });
+      } else {
+        // Handle regular task completion through API
+        if (currentStatus) {
+          await api.updateTask(taskId, { completed: false, userId });
+        } else {
+          await api.updateTask(taskId, { completed: true, userId });
+        }
+      }
 
       // Refresh dashboard data after toggling task
-      const updatedDashboard = await api.getDashboard('demo-user-123');
+      const updatedDashboard = await api.getDashboard(userId);
       setDashboardData(updatedDashboard);
+
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `Task ${currentStatus ? 'uncompleted' : 'completed'} successfully!`
+      });
     } catch (err) {
       console.error('Error toggling task:', err);
       // Show error toast

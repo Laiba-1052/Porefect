@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Routine = require('../models/Routine');
 const Product = require('../models/Product');
+const Task = require('../models/Task');
 
 // Get dashboard data
 router.get('/:userId', async (req, res) => {
@@ -15,6 +16,14 @@ router.get('/:userId', async (req, res) => {
     // Get products
     const products = await Product.find({ userId })
       .sort({ createdAt: -1 });
+
+    // Get tasks for today
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const tasks = await Task.find({
+      userId,
+      daysOfWeek: dayOfWeek
+    }).sort({ time: 1 });
 
     // Get completed routines count
     const completedRoutines = routines.filter(routine => routine.lastCompleted).length;
@@ -51,27 +60,35 @@ router.get('/:userId', async (req, res) => {
     // Sort activities by timestamp
     activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    // Get upcoming tasks (routines that need to be done)
-    const upcomingTasks = routines
+    // Combine tasks and active routines for today's tasks
+    const routineTasks = routines
       .filter(routine => routine.isActive)
       .map(routine => ({
-        id: routine._id,
+        id: `routine-${routine._id}`,
         title: routine.name,
         type: 'routine',
         routineId: routine._id,
         schedule: routine.schedule,
-        completed: false,
+        completed: routine.lastCompleted ? new Date(routine.lastCompleted).toDateString() === today.toDateString() : false,
+        time: routine.preferredTime || '',
         lastCompleted: routine.lastCompleted
-      }))
-      .slice(0, 3);
+      }));
+
+    const allTasks = [...tasks, ...routineTasks]
+      .sort((a, b) => {
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        return a.time.localeCompare(b.time);
+      })
+      .slice(0, 5); // Only return top 5 tasks
 
     res.json({
       routinesCount: routines.length,
       productsCount: products.length,
-      tasksCount: upcomingTasks.length,
+      tasksCount: tasks.length + routineTasks.length,
       completedCount: completedRoutines,
       activities: activities.slice(0, 5),
-      upcomingTasks
+      upcomingTasks: allTasks
     });
   } catch (error) {
     console.error('Dashboard data error:', error);

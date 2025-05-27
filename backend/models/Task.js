@@ -22,10 +22,16 @@ const taskSchema = new mongoose.Schema({
   },
   time: String,
   daysOfWeek: [Number],
-  completed: {
-    type: Boolean,
-    default: false,
-  },
+  completions: [{
+    date: {
+      type: Date,
+      required: true
+    },
+    completed: {
+      type: Boolean,
+      default: true
+    }
+  }],
   lastCompleted: Date,
 }, {
   timestamps: true,

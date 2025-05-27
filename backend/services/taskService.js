@@ -6,46 +6,30 @@ const taskService = {
   async getUserTasksForDay(userId, date) {
     try {
       const dayOfWeek = new Date(date).getDay();
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
       
-      // Get tasks and routines that are scheduled for this day
+      // Get only tasks (not routines) that are scheduled for this day
       const tasks = await Task.find({
         userId,
         daysOfWeek: dayOfWeek
       }).sort({ time: 1 });
 
-      // Get routines for this day
-      const routines = await Routine.find({
-        userId,
-        isActive: true
+      // Map tasks to include completion status for the specific date
+      const tasksWithCompletionStatus = tasks.map(task => {
+        const taskObj = task.toObject();
+        const completion = task.completions?.find(c => {
+          const completionDate = new Date(c.date);
+          return completionDate.toDateString() === startOfDay.toDateString();
+        });
+        
+        return {
+          ...taskObj,
+          completed: completion ? completion.completed : false
+        };
       });
 
-      // Convert routines to tasks
-      const routineTasks = routines.map(routine => ({
-        _id: `routine-${routine._id}`,
-        userId: routine.userId,
-        title: routine.name,
-        type: 'routine',
-        routineId: routine._id,
-        schedule: routine.schedule,
-        time: routine.preferredTime || '',
-        daysOfWeek: routine.schedule === 'morning' ? [0,1,2,3,4,5,6] : 
-                    routine.schedule === 'evening' ? [0,1,2,3,4,5,6] : 
-                    routine.daysOfWeek || [dayOfWeek],
-        completed: false,
-        lastCompleted: routine.lastCompleted,
-        steps: routine.steps,
-        createdAt: routine.createdAt,
-        updatedAt: routine.updatedAt
-      }));
-
-      // Combine and sort all tasks by time
-      const allTasks = [...tasks, ...routineTasks].sort((a, b) => {
-        if (!a.time) return 1;
-        if (!b.time) return -1;
-        return a.time.localeCompare(b.time);
-      });
-
-      return allTasks;
+      return tasksWithCompletionStatus;
     } catch (error) {
       console.error('Error getting tasks:', error);
       throw error;
@@ -55,27 +39,10 @@ const taskService = {
   // Create a new task
   async createTask(taskData) {
     try {
-      // If it's a routine-based task, verify the routine exists
-      if (taskData.type === 'routine' && taskData.routineId) {
-        const routine = await Routine.findOne({
-          _id: taskData.routineId,
-          userId: taskData.userId
-        });
-
-        if (!routine) {
-          throw new Error('Routine not found');
-        }
-
-        // Use routine name as task title if not provided
-        if (!taskData.title) {
-          taskData.title = routine.name;
-        }
-      }
-
       // Create and save the new task
       const task = new Task({
         ...taskData,
-        completed: false,
+        completions: [],
         lastCompleted: null,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -89,31 +56,35 @@ const taskService = {
     }
   },
 
-  // Mark a task as completed
-  async completeTask(taskId, userId) {
+  // Mark a task as completed for a specific date
+  async completeTask(taskId, userId, date) {
     try {
-      // Check if it's a routine task
-      if (taskId.startsWith('routine-')) {
-        const routineId = taskId.replace('routine-', '');
-        const routine = await Routine.findOne({ _id: routineId, userId });
-        
-        if (!routine) {
-          throw new Error('Routine not found');
-        }
-
-        routine.lastCompleted = new Date();
-        await routine.save();
-        return { message: 'Routine completed' };
-      }
-
-      // Regular task
       const task = await Task.findOne({ _id: taskId, userId });
       
       if (!task) {
         throw new Error('Task not found');
       }
 
-      task.completed = true;
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      // Find if there's already a completion for this date
+      const existingCompletionIndex = task.completions.findIndex(c => {
+        const completionDate = new Date(c.date);
+        return completionDate.toDateString() === startOfDay.toDateString();
+      });
+
+      if (existingCompletionIndex >= 0) {
+        // Update existing completion
+        task.completions[existingCompletionIndex].completed = true;
+      } else {
+        // Add new completion
+        task.completions.push({
+          date: startOfDay,
+          completed: true
+        });
+      }
+
       task.lastCompleted = new Date();
       await task.save();
 
@@ -124,32 +95,35 @@ const taskService = {
     }
   },
 
-  // Mark a task as uncompleted
-  async uncompleteTask(taskId, userId) {
+  // Mark a task as uncompleted for a specific date
+  async uncompleteTask(taskId, userId, date) {
     try {
-      // Check if it's a routine task
-      if (taskId.startsWith('routine-')) {
-        const routineId = taskId.replace('routine-', '');
-        const routine = await Routine.findOne({ _id: routineId, userId });
-        
-        if (!routine) {
-          throw new Error('Routine not found');
-        }
-
-        routine.lastCompleted = null;
-        await routine.save();
-        return { message: 'Routine uncompleted' };
-      }
-
-      // Regular task
       const task = await Task.findOne({ _id: taskId, userId });
       
       if (!task) {
         throw new Error('Task not found');
       }
 
-      task.completed = false;
-      task.lastCompleted = null;
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      // Find if there's already a completion for this date
+      const existingCompletionIndex = task.completions.findIndex(c => {
+        const completionDate = new Date(c.date);
+        return completionDate.toDateString() === startOfDay.toDateString();
+      });
+
+      if (existingCompletionIndex >= 0) {
+        // Update existing completion
+        task.completions[existingCompletionIndex].completed = false;
+      } else {
+        // Add new completion
+        task.completions.push({
+          date: startOfDay,
+          completed: false
+        });
+      }
+
       await task.save();
 
       return { message: 'Task uncompleted' };

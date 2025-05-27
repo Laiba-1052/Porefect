@@ -64,6 +64,7 @@ export const api = {
   createRoutine: (data) => apiRequest('POST', '/routines', data),
   updateRoutine: (id, data) => apiRequest('PATCH', `/routines/${id}`, data),
   deleteRoutine: (id, userId) => apiRequest('DELETE', `/routines/${id}`, { userId }),
+  toggleRoutineCompletion: (data) => apiRequest('POST', `/routines/${data.routineId}/toggle-completion`, data),
 
   // Products
   getProducts: (userId) => apiRequest('GET', `/products/${userId}`),
@@ -77,9 +78,12 @@ export const api = {
 
   // Tasks
   getTasks: (userId) => apiRequest('GET', `/tasks/${userId}`),
+  getTasksForDate: (userId, date) => apiRequest('GET', `/tasks/${userId}/${date}`),
   createTask: (data) => apiRequest('POST', '/tasks', data),
   updateTask: (id, data) => apiRequest('PATCH', `/tasks/${id}`, data),
   deleteTask: (id, userId) => apiRequest('DELETE', `/tasks/${id}`, { userId }),
+  completeTask: (taskId, userId, date) => apiRequest('POST', `/tasks/${taskId}/complete`, { userId, date }),
+  uncompleteTask: (taskId, userId, date) => apiRequest('POST', `/tasks/${taskId}/uncomplete`, { userId, date }),
 
   // Reviews
   getReviews: (searchQuery = '') => apiRequest('GET', `/reviews${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`),

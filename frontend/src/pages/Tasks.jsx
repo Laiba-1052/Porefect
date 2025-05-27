@@ -5,7 +5,7 @@ import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import taskService from '../services/taskService';
+import { api } from '../utils/api';
 
 function Tasks() {
   const { userProfile } = useAuth();
@@ -20,8 +20,9 @@ function Tasks() {
         setIsLoading(true);
         setError(null);
         const userId = userProfile?.uid || 'demo-user-123';
-        const data = await taskService.getTasksForDay(userId, selectedDate);
-        setTasks(data);
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        const response = await api.getTasksForDate(userId, formattedDate);
+        setTasks(response);
       } catch (err) {
         console.error('Error fetching tasks:', err);
         setError('Failed to load tasks. Please try again later.');
@@ -44,19 +45,21 @@ function Tasks() {
   const handleToggleTask = async (taskId, currentStatus) => {
     try {
       const userId = userProfile?.uid || 'demo-user-123';
+      const formattedDate = selectedDate.toISOString().split('T')[0];
       
+      // Handle regular task completion
       if (currentStatus) {
-        await taskService.uncompleteTask(taskId, userId);
+        await api.uncompleteTask(taskId, userId, formattedDate);
       } else {
-        await taskService.completeTask(taskId, userId);
+        await api.completeTask(taskId, userId, formattedDate);
       }
 
-      // Refresh tasks
-      const updatedTasks = await taskService.getTasksForDay(userId, selectedDate);
+      // Refresh tasks after toggling
+      const updatedTasks = await api.getTasksForDate(userId, formattedDate);
       setTasks(updatedTasks);
     } catch (err) {
       console.error('Error toggling task:', err);
-      // Show error toast or notification here
+      // You could add a toast notification here for errors
     }
   };
 
