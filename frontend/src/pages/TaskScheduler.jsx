@@ -1,54 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X, Clock, Repeat, Calendar as CalendarIcon, Grid, List, CheckCircle2 } from 'lucide-react';
+import { Plus, X, Clock, Repeat, Calendar as CalendarIcon, Grid, List, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { dummyTasks, dummyRoutines } from '../data/dummyData';
+import { dummyRoutines } from '../data/dummyData';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function TaskScheduler() {
   const { userProfile } = useAuth();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [viewMode, setViewMode] = useState('list'); // Default to list view when showing today's tasks
+  const [viewMode, setViewMode] = useState('list');
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Check if we should show today's tasks (from dashboard)
   const showTodayTasks = location.state?.showToday || false;
   
   // Form states
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskType, setNewTaskType] = useState('task'); // 'task' or 'routine'
+  const [newTaskType, setNewTaskType] = useState('task');
   const [newTaskRoutineId, setNewTaskRoutineId] = useState('');
-  const [newTaskSchedule, setNewTaskSchedule] = useState('daily'); // 'daily', 'weekly'
+  const [newTaskSchedule, setNewTaskSchedule] = useState('daily');
   const [newTaskTime, setNewTaskTime] = useState('');
   const [newTaskDaysOfWeek, setNewTaskDaysOfWeek] = useState([0, 1, 2, 3, 4, 5, 6]);
   
   useEffect(() => {
-    // In a real app, this would fetch from Firestore
-    const allTasks = dummyTasks;
-    
-    // If showTodayTasks is true, filter for today's tasks
-    if (showTodayTasks) {
-      const today = new Date();
-      const todayDay = today.getDay(); // 0-6 for Sunday-Saturday
-      
-      const todaysTasks = allTasks.filter(task => {
-        // For daily tasks
-        if (task.schedule === 'daily') return true;
-        
-        // For weekly tasks, check if today is one of the scheduled days
-        return task.daysOfWeek.includes(todayDay);
-      });
-      
-      setTasks(todaysTasks);
-    } else {
-      setTasks(allTasks);
-    }
-  }, [showTodayTasks]);
+    const fetchTasks = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const userId = userProfile?.uid || 'demo-user-123';
+        const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
+        const response = await axios.get(`${API_URL}/tasks/${userId}/${formattedDate}`);
+        setTasks(response.data);
+      } catch (err) {
+        console.error('Error fetching tasks:', err);
+        setError('Failed to load tasks. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [showTodayTasks, currentWeekStart, userProfile]);
   
   const openAddModal = () => {
     setNewTaskTitle('');
@@ -64,41 +66,49 @@ function TaskScheduler() {
     setShowAddModal(false);
   };
   
-  const handleAddTask = (e) => {
+  const handleAddTask = async (e) => {
     e.preventDefault();
     
-    // In a real app, this would save to Firestore
-    const newTask = {
-      id: `task-${Date.now()}`,
-      title: newTaskTitle,
-      type: newTaskType,
-      routineId: newTaskType === 'routine' ? newTaskRoutineId : null,
-      userId: userProfile?.uid || 'demo-user',
-      schedule: newTaskSchedule,
-      time: newTaskTime,
-      daysOfWeek: newTaskDaysOfWeek,
-      completed: false,
-      createdAt: new Date().toISOString()
-    };
-    
-    setTasks([...tasks, newTask]);
-    closeAddModal();
+    try {
+      const userId = userProfile?.uid || 'demo-user-123';
+      const newTask = {
+        title: newTaskTitle,
+        type: newTaskType,
+        routineId: newTaskType === 'routine' ? newTaskRoutineId : null,
+        userId,
+        schedule: newTaskSchedule,
+        time: newTaskTime,
+        daysOfWeek: newTaskDaysOfWeek,
+      };
+      
+      const response = await axios.post(`${API_URL}/tasks`, newTask);
+      setTasks(prev => [...prev, response.data]);
+      
+      closeAddModal();
+    } catch (err) {
+      console.error('Error adding task:', err);
+      // TODO: Show error notification
+    }
   };
   
-  const handleToggleTaskCompletion = (taskId) => {
-    // In a real app, this would update Firestore
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        return {
-          ...task,
-          completed: !task.completed,
-          lastCompleted: !task.completed ? new Date().toISOString() : task.lastCompleted
-        };
+  const handleToggleTaskCompletion = async (taskId, currentStatus) => {
+    try {
+      const userId = userProfile?.uid || 'demo-user-123';
+      
+      if (currentStatus) {
+        await axios.post(`${API_URL}/tasks/${taskId}/uncomplete`, { userId });
+      } else {
+        await axios.post(`${API_URL}/tasks/${taskId}/complete`, { userId });
       }
-      return task;
-    });
-    
-    setTasks(updatedTasks);
+
+      // Refresh tasks
+      const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
+      const response = await axios.get(`${API_URL}/tasks/${userId}/${formattedDate}`);
+      setTasks(response.data);
+    } catch (err) {
+      console.error('Error toggling task:', err);
+      // Show error notification
+    }
   };
   
   const handleDayOfWeekToggle = (day) => {
@@ -111,8 +121,7 @@ function TaskScheduler() {
   
   const getTasksForDay = (day) => {
     return tasks.filter(task => {
-      const taskDate = new Date(task.lastCompleted || task.createdAt);
-      return task.daysOfWeek.includes(day) && (!task.completed || !isSameDay(taskDate, new Date()));
+      return task.daysOfWeek.includes(day) && !task.completed;
     });
   };
   
@@ -123,6 +132,30 @@ function TaskScheduler() {
   const getRoutineById = (routineId) => {
     return dummyRoutines.find(routine => routine.id === routineId);
   };
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lavender-500"></div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+          <div className="text-error-500 mb-4">
+            <AlertCircle size={48} />
+          </div>
+          <h2 className="text-xl font-medium text-gray-800 mb-2">Oops! Something went wrong</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </MainLayout>
+    );
+  }
   
   return (
     <MainLayout>
@@ -234,7 +267,7 @@ function TaskScheduler() {
                           <div 
                             key={task.id}
                             className="text-xs p-1.5 rounded bg-white border border-gray-200 cursor-pointer hover:bg-lavender-50 transition-colors"
-                            onClick={() => handleToggleTaskCompletion(task.id)}
+                            onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
                           >
                             <div className="flex items-center">
                               <button 
@@ -277,7 +310,7 @@ function TaskScheduler() {
                           ? 'bg-mint-500 border-mint-500' 
                           : 'bg-white border-gray-300 hover:border-lavender-400'
                       } flex items-center justify-center mr-3 transition-colors`}
-                      onClick={() => handleToggleTaskCompletion(task.id)}
+                      onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
                     >
                       {task.completed && <CheckCircle2 size={14} className="text-white" />}
                     </button>

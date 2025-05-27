@@ -52,6 +52,43 @@ const taskService = {
     }
   },
 
+  // Create a new task
+  async createTask(taskData) {
+    try {
+      // If it's a routine-based task, verify the routine exists
+      if (taskData.type === 'routine' && taskData.routineId) {
+        const routine = await Routine.findOne({
+          _id: taskData.routineId,
+          userId: taskData.userId
+        });
+
+        if (!routine) {
+          throw new Error('Routine not found');
+        }
+
+        // Use routine name as task title if not provided
+        if (!taskData.title) {
+          taskData.title = routine.name;
+        }
+      }
+
+      // Create and save the new task
+      const task = new Task({
+        ...taskData,
+        completed: false,
+        lastCompleted: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      const savedTask = await task.save();
+      return savedTask;
+    } catch (error) {
+      console.error('Error creating task:', error);
+      throw error;
+    }
+  },
+
   // Mark a task as completed
   async completeTask(taskId, userId) {
     try {

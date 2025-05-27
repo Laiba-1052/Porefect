@@ -14,6 +14,22 @@ router.get('/:userId/:date', async (req, res) => {
   }
 });
 
+// Create a new task
+router.post('/', async (req, res) => {
+  try {
+    const taskData = req.body;
+    const newTask = await taskService.createTask(taskData);
+    res.status(201).json(newTask);
+  } catch (error) {
+    console.error('Error creating task:', error);
+    if (error.message === 'Routine not found') {
+      res.status(404).json({ message: error.message });
+    } else {
+      res.status(400).json({ message: error.message });
+    }
+  }
+});
+
 // Mark task as completed
 router.post('/:taskId/complete', async (req, res) => {
   try {

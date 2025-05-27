@@ -16,7 +16,14 @@ dotenv.config();
 const app = express();
 
 // Connect to MongoDB
-connectDB();
+connectDB()
+  .then(() => {
+    console.log('MongoDB Connected:', mongoose.connection.host);
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 // Middleware
 app.use(cors({
@@ -44,15 +51,6 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!' });
 });
-
-// MongoDB connection
-mongoose.connect('mongodb+srv://ac-9sans31-shard-00-02.qqww3hw.mongodb.net')
-  .then(() => {
-    console.log('MongoDB Connected:', mongoose.connection.host);
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
-  });
 
 const PORT = process.env.PORT || 5000;
 

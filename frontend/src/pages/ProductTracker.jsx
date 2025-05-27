@@ -4,7 +4,9 @@ import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import { useAuth } from '../contexts/AuthContext';
 import { format, differenceInDays } from 'date-fns';
-import productService from '../services/productService';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function ProductTracker() {
   const { userProfile } = useAuth();
@@ -34,11 +36,11 @@ function ProductTracker() {
         setIsLoading(true);
         setError(null);
         const userId = userProfile?.uid || 'demo-user-123';
-        const data = await productService.getUserProducts(userId);
-        setProducts(data);
-        setFilteredProducts(data);
-      } catch (err) {
-        console.error('Error fetching products:', err);
+        const response = await axios.get(`${API_URL}/products/${userId}`);
+        setProducts(response.data);
+        setFilteredProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
         setError('Failed to load products. Please try again later.');
       } finally {
         setIsLoading(false);
