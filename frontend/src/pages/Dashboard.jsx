@@ -86,9 +86,11 @@ function Dashboard() {
 
   const handleToggleTaskCompletion = async (taskId, currentStatus) => {
     try {
+      console.log('Attempting to toggle task:', { taskId, currentStatus });
       const userId = 'demo-user-123'; // For demo purposes
       
       if (taskId.startsWith('routine-')) {
+        console.log('Handling routine completion');
         // Handle routine completion through the API
         await api.toggleRoutineCompletion({
           routineId: taskId.replace('routine-', ''),
@@ -96,11 +98,14 @@ function Dashboard() {
           completed: !currentStatus
         });
       } else {
+        console.log('Handling task completion');
         // Handle regular task completion through API
         if (currentStatus) {
-          await api.updateTask(taskId, { completed: false, userId });
+          console.log('Uncompleting task with ID:', taskId);
+          await api.uncompleteTask(taskId, userId);
         } else {
-          await api.updateTask(taskId, { completed: true, userId });
+          console.log('Completing task with ID:', taskId);
+          await api.completeTask(taskId, userId);
         }
       }
 
@@ -114,7 +119,7 @@ function Dashboard() {
         message: `Task ${currentStatus ? 'uncompleted' : 'completed'} successfully!`
       });
     } catch (err) {
-      console.error('Error toggling task:', err);
+      console.error('Error details:', err);
       // Show error toast
       setToast({
         type: 'error',
@@ -277,7 +282,7 @@ function Dashboard() {
                             ? 'bg-mint-500 border-mint-500' 
                             : 'bg-white border-gray-300 hover:border-lavender-400'
                         } flex items-center justify-center transition-colors`}
-                        onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
+                        onClick={() => handleToggleTaskCompletion(task._id || task.id, task.completed)}
                       >
                         {task.completed && <CheckCircle size={14} className="text-white" />}
                       </button>

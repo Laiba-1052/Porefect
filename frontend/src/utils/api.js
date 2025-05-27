@@ -82,8 +82,26 @@ export const api = {
   createTask: (data) => apiRequest('POST', '/tasks', data),
   updateTask: (id, data) => apiRequest('PATCH', `/tasks/${id}`, data),
   deleteTask: (id, userId) => apiRequest('DELETE', `/tasks/${id}`, { userId }),
-  completeTask: (taskId, userId) => apiRequest('POST', `/tasks/${taskId}/complete`, { userId }),
-  uncompleteTask: (taskId, userId) => apiRequest('POST', `/tasks/${taskId}/uncomplete`, { userId }),
+  completeTask: async (taskId, userId) => {
+    try {
+      console.log('API: Completing task', { taskId, userId });
+      const response = await axios.post(`${BASE_URL}/tasks/${taskId}/complete`, { userId });
+      return response.data;
+    } catch (error) {
+      console.error('API Error - Complete Task:', error.response || error);
+      throw error;
+    }
+  },
+  uncompleteTask: async (taskId, userId) => {
+    try {
+      console.log('API: Uncompleting task', { taskId, userId });
+      const response = await axios.post(`${BASE_URL}/tasks/${taskId}/uncomplete`, { userId });
+      return response.data;
+    } catch (error) {
+      console.error('API Error - Uncomplete Task:', error.response || error);
+      throw error;
+    }
+  },
 
   // Reviews
   getReviews: (searchQuery = '') => apiRequest('GET', `/reviews${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`),

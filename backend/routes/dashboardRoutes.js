@@ -64,6 +64,7 @@ router.get('/:userId', async (req, res) => {
     const routineTasks = routines
       .filter(routine => routine.isActive)
       .map(routine => ({
+        _id: `routine-${routine._id}`,
         id: `routine-${routine._id}`,
         title: routine.name,
         type: 'routine',
@@ -74,7 +75,12 @@ router.get('/:userId', async (req, res) => {
         lastCompleted: routine.lastCompleted
       }));
 
-    const allTasks = [...tasks, ...routineTasks]
+    const tasksWithIds = tasks.map(task => ({
+      ...task.toObject(),
+      id: task._id.toString()
+    }));
+
+    const allTasks = [...tasksWithIds, ...routineTasks]
       .sort((a, b) => {
         if (!a.time) return 1;
         if (!b.time) return -1;
