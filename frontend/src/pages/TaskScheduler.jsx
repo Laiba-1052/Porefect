@@ -6,7 +6,6 @@ import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { dummyRoutines } from '../data/dummyData';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -15,6 +14,7 @@ function TaskScheduler() {
   const { userProfile } = useAuth();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
+  const [routines, setRoutines] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState('list');
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
@@ -51,6 +51,24 @@ function TaskScheduler() {
 
     fetchTasks();
   }, [showTodayTasks, currentWeekStart, userProfile]);
+  
+  // Fetch routines when opening the add modal
+  useEffect(() => {
+    const fetchRoutines = async () => {
+      if (showAddModal && newTaskType === 'routine') {
+        try {
+          const userId = userProfile?.uid || 'demo-user-123';
+          const response = await axios.get(`${API_URL}/routines/${userId}`);
+          setRoutines(response.data);
+        } catch (err) {
+          console.error('Error fetching routines:', err);
+          // Handle error
+        }
+      }
+    };
+
+    fetchRoutines();
+  }, [showAddModal, newTaskType, userProfile]);
   
   const openAddModal = () => {
     setNewTaskTitle('');
@@ -121,16 +139,12 @@ function TaskScheduler() {
   
   const getTasksForDay = (day) => {
     return tasks.filter(task => {
-      return task.daysOfWeek.includes(day) && !task.completed;
+      return task.daysOfWeek.includes(day);
     });
   };
   
   const getDayLabel = (day) => {
     return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day];
-  };
-  
-  const getRoutineById = (routineId) => {
-    return dummyRoutines.find(routine => routine.id === routineId);
   };
 
   if (isLoading) {
@@ -413,15 +427,15 @@ function TaskScheduler() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-lavender-500 focus:border-lavender-500"
                       value={newTaskRoutineId}
                       onChange={(e) => {
-                        const routine = getRoutineById(e.target.value);
                         setNewTaskRoutineId(e.target.value);
-                        setNewTaskTitle(routine ? routine.name : '');
+                        const selectedRoutine = routines.find(r => r._id === e.target.value);
+                        setNewTaskTitle(selectedRoutine ? selectedRoutine.name : '');
                       }}
                       required
                     >
                       <option value="" disabled>Select a routine</option>
-                      {dummyRoutines.map((routine) => (
-                        <option key={routine.id} value={routine.id}>
+                      {routines.map((routine) => (
+                        <option key={routine._id} value={routine._id}>
                           {routine.name}
                         </option>
                       ))}
