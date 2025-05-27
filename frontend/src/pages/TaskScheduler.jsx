@@ -265,9 +265,9 @@ function TaskScheduler() {
                       ) : (
                         dayTasks.map((task) => (
                           <div 
-                            key={task.id}
+                            key={task._id}
                             className="text-xs p-1.5 rounded bg-white border border-gray-200 cursor-pointer hover:bg-lavender-50 transition-colors"
-                            onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
+                            onClick={() => handleToggleTaskCompletion(task._id, task.completed)}
                           >
                             <div className="flex items-center">
                               <button 
@@ -302,7 +302,7 @@ function TaskScheduler() {
           <Card>
             <div className="divide-y divide-gray-100">
               {tasks.map((task) => (
-                <div key={task.id} className="py-3 flex items-center justify-between">
+                <div key={task._id} className="py-3 flex items-center justify-between">
                   <div className="flex items-center">
                     <button 
                       className={`h-5 w-5 rounded-full border ${
@@ -310,7 +310,7 @@ function TaskScheduler() {
                           ? 'bg-mint-500 border-mint-500' 
                           : 'bg-white border-gray-300 hover:border-lavender-400'
                       } flex items-center justify-center mr-3 transition-colors`}
-                      onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
+                      onClick={() => handleToggleTaskCompletion(task._id, task.completed)}
                     >
                       {task.completed && <CheckCircle2 size={14} className="text-white" />}
                     </button>
