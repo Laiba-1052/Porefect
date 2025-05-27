@@ -84,6 +84,27 @@ function Dashboard() {
     navigate('/tasks', { state: { showToday: true } });
   };
 
+  const handleToggleTaskCompletion = async (taskId, currentStatus) => {
+    try {
+      await api.toggleTaskCompletion({
+        taskId,
+        userId: 'demo-user-123', // For demo purposes
+        completed: !currentStatus
+      });
+
+      // Refresh dashboard data after toggling task
+      const updatedDashboard = await api.getDashboard('demo-user-123');
+      setDashboardData(updatedDashboard);
+    } catch (err) {
+      console.error('Error toggling task:', err);
+      // Show error toast
+      setToast({
+        type: 'error',
+        message: 'Failed to update task. Please try again.'
+      });
+    }
+  };
+
   function formatActivityText(activity) {
     switch (activity.type) {
       case 'routine_completed':
@@ -226,11 +247,9 @@ function Dashboard() {
                         <p className="font-medium text-gray-800">{task.title}</p>
                         <div className="flex items-center text-xs text-gray-500">
                           <Calendar size={14} className="mr-1" />
-                          <span>{task.schedule}</span>
-                          {task.lastCompleted && (
-                            <span className="ml-2">
-                              Last done: {new Date(task.lastCompleted).toLocaleDateString()}
-                            </span>
+                          <span>{task.schedule === 'daily' ? 'Daily' : 'Weekly'}</span>
+                          {task.time && (
+                            <span className="ml-2">at {task.time}</span>
                           )}
                         </div>
                       </div>
@@ -240,7 +259,7 @@ function Dashboard() {
                             ? 'bg-mint-500 border-mint-500' 
                             : 'bg-white border-gray-300 hover:border-lavender-400'
                         } flex items-center justify-center transition-colors`}
-                        onClick={() => {/* Toggle completion */}}
+                        onClick={() => handleToggleTaskCompletion(task.id, task.completed)}
                       >
                         {task.completed && <CheckCircle size={14} className="text-white" />}
                       </button>
