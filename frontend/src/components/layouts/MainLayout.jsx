@@ -35,7 +35,7 @@ function MainLayout({ children }) {
   };
 
   return (
-    <div className="flex h-screen bg-lavender-50">
+    <div className="flex min-h-screen bg-lavender-50">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 bg-white shadow-md">
         <div className="flex items-center justify-center h-16 border-b">
@@ -146,7 +146,7 @@ function MainLayout({ children }) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64">
+      <div className="flex-1 md:ml-64 bg-lavender-50">
         <main className="py-6 px-4 md:px-8 md:pt-0 mt-16 md:mt-0">
           {children}
         </main>

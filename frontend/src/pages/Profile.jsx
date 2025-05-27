@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import MainLayout from '../components/layouts/MainLayout';
 
 function Profile() {
   const { currentUser } = useAuth();
@@ -55,42 +56,51 @@ function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-lavender-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile</h1>
-            
-            {error && (
-              <div className="bg-error-50 text-error-700 p-4 rounded-md mb-4">
-                {error}
-              </div>
-            )}
+    <MainLayout>
+      <div className="pb-12">
+        <header className="flex items-center justify-between mb-8 mt-8">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">
+              Profile
+            </h1>
+          </div>
+        </header>
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="p-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Profile</h1>
+              
+              {error && (
+                <div className="bg-error-50 text-error-700 p-4 rounded-md mb-4">
+                  {error}
+                </div>
+              )}
 
-            {userData && (
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-sm font-medium text-gray-500">Username</h2>
-                  <p className="mt-1 text-lg text-gray-900">{userData.username}</p>
+              {userData && (
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-sm font-medium text-gray-500">Username</h2>
+                    <p className="mt-1 text-lg text-gray-900">{userData.username}</p>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-sm font-medium text-gray-500">Email</h2>
+                    <p className="mt-1 text-lg text-gray-900">{userData.email}</p>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-sm font-medium text-gray-500">Account Created</h2>
+                    <p className="mt-1 text-lg text-gray-900">
+                      {new Date(userData.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                
-                <div>
-                  <h2 className="text-sm font-medium text-gray-500">Email</h2>
-                  <p className="mt-1 text-lg text-gray-900">{userData.email}</p>
-                </div>
-                
-                <div>
-                  <h2 className="text-sm font-medium text-gray-500">Account Created</h2>
-                  <p className="mt-1 text-lg text-gray-900">
-                    {new Date(userData.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }
 

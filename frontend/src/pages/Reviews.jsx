@@ -181,7 +181,7 @@ function Reviews() {
         />
       )}
       <div className="pb-12">
-        <header className="flex items-center justify-between mb-8">
+        <header className="flex items-center justify-between mb-8 mt-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">
               Reviews & Ingredients

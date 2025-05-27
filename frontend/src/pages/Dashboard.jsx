@@ -149,13 +149,15 @@ function Dashboard() {
         />
       )}
       <div className="pb-12">
-        <header className="mb-8">
-          <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">
-            Welcome, {currentUser?.username || 'there'}!
-          </h1>
-          <p className="text-gray-600">
-            Here's an overview of your skincare journey
-          </p>
+        <header className="flex items-center justify-between mb-8 mt-8">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-gray-800 mb-2">
+              Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Here's an overview of your skincare journey
+            </p>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
