@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://porefect-production.up.railway.app/api';
 
 // Helper function to get Firebase token
 const getAuthToken = async () => {

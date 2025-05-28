@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { format, differenceInDays } from 'date-fns';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://porefect-production.up.railway.app/api';
 
 function ProductTracker() {
   const { userProfile } = useAuth();

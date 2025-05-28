@@ -8,7 +8,7 @@ import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'https://porefect-production.up.railway.app/api';
 
 function TaskScheduler() {
   const { userProfile } = useAuth();
