@@ -1,8 +1,8 @@
 // Dummy data for the application when Firestore is not connected
 
 export const dummyUser = {
-  uid: 'demo-user-123',
-  username: 'Sarah',
+  uid: 'demo-user-321',
+  username: 'Hashir',
   email: 'sarah@example.com',
   skinType: 'combination',
   createdAt: new Date(2023, 5, 15).toISOString()
