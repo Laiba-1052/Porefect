@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Clock, Repeat, Calendar as CalendarIcon, Grid, List, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
 import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../utils/api';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
-
-const API_URL = 'https://porefect-production.up.railway.app/api';
 
 function TaskScheduler() {
   const { userProfile } = useAuth();
@@ -39,8 +37,8 @@ function TaskScheduler() {
         setError(null);
         const userId = userProfile?.uid || 'demo-user-123';
         const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
-        const response = await axios.get(`${API_URL}/tasks/${userId}/${formattedDate}`);
-        setTasks(response.data);
+        const response = await api.getTasksForDate(userId, formattedDate);
+        setTasks(response);
       } catch (err) {
         console.error('Error fetching tasks:', err);
         setError('Failed to load tasks. Please try again later.');
@@ -58,8 +56,8 @@ function TaskScheduler() {
       if (showAddModal && newTaskType === 'routine') {
         try {
           const userId = userProfile?.uid || 'demo-user-123';
-          const response = await axios.get(`${API_URL}/routines/${userId}`);
-          setRoutines(response.data);
+          const response = await api.getRoutines(userId);
+          setRoutines(response);
         } catch (err) {
           console.error('Error fetching routines:', err);
           // Handle error
@@ -99,8 +97,8 @@ function TaskScheduler() {
         daysOfWeek: newTaskDaysOfWeek,
       };
       
-      const response = await axios.post(`${API_URL}/tasks`, newTask);
-      setTasks(prev => [...prev, response.data]);
+      const response = await api.createTask(newTask);
+      setTasks(prev => [...prev, response]);
       
       closeAddModal();
     } catch (err) {
@@ -114,15 +112,15 @@ function TaskScheduler() {
       const userId = userProfile?.uid || 'demo-user-123';
       
       if (currentStatus) {
-        await axios.post(`${API_URL}/tasks/${taskId}/uncomplete`, { userId });
+        await api.uncompleteTask(taskId, userId);
       } else {
-        await axios.post(`${API_URL}/tasks/${taskId}/complete`, { userId });
+        await api.completeTask(taskId, userId);
       }
 
       // Refresh tasks
       const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
-      const response = await axios.get(`${API_URL}/tasks/${userId}/${formattedDate}`);
-      setTasks(response.data);
+      const response = await api.getTasksForDate(userId, formattedDate);
+      setTasks(response);
     } catch (err) {
       console.error('Error toggling task:', err);
       // Show error notification

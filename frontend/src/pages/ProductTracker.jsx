@@ -4,9 +4,7 @@ import MainLayout from '../components/layouts/MainLayout';
 import Card from '../components/ui/Card';
 import { useAuth } from '../contexts/AuthContext';
 import { format, differenceInDays } from 'date-fns';
-import axios from 'axios';
-
-const API_URL = 'https://porefect-production.up.railway.app/api';
+import { api } from '../utils/api';
 
 function ProductTracker() {
   const { userProfile } = useAuth();
@@ -36,9 +34,9 @@ function ProductTracker() {
         setIsLoading(true);
         setError(null);
         const userId = userProfile?.uid || 'demo-user-123';
-        const response = await axios.get(`${API_URL}/products/${userId}`);
-        setProducts(response.data);
-        setFilteredProducts(response.data);
+        const response = await api.getProducts(userId);
+        setProducts(response);
+        setFilteredProducts(response);
       } catch (error) {
         console.error('Error fetching products:', error);
         setError('Failed to load products. Please try again later.');
