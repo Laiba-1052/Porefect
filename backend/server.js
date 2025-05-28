@@ -27,7 +27,7 @@ connectDB()
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port
+  origin: ['http://localhost:5173', 'https://porefect.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
