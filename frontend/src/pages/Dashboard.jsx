@@ -28,15 +28,17 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-
-        // For demo purposes, use demo-user-123
-        const userId = 'demo-user-123';
         
-        // Fetch dashboard data using the new endpoint
-        const response = await api.getDashboard(userId);
+        // Use the authenticated user's ID
+        const response = await api.getDashboard(currentUser.uid);
         setDashboardData(response);
 
         // Get suggested routines based on user skin type
@@ -51,18 +53,20 @@ function Dashboard() {
     };
 
     fetchDashboardData();
-  }, [currentUser?.skinType]);
+  }, [currentUser]);
 
   const handleAddSuggestedRoutine = async (routine) => {
+    if (!currentUser) return;
+
     try {
       await api.addSuggestedRoutine({
-        userId: 'demo-user-123', // For demo purposes
+        userId: currentUser.uid,
         routineName: routine.name,
         steps: routine.steps
       });
 
       // Refresh dashboard data after adding routine
-      const updatedDashboard = await api.getDashboard('demo-user-123');
+      const updatedDashboard = await api.getDashboard(currentUser.uid);
       setDashboardData(updatedDashboard);
 
       // Show success toast
@@ -85,26 +89,21 @@ function Dashboard() {
   };
 
   const handleToggleTaskCompletion = async (taskId, currentStatus) => {
+    if (!currentUser) return;
+
     try {
-      console.log('Attempting to toggle task:', { taskId, currentStatus });
-      const userId = 'demo-user-123'; // For demo purposes
+      const userId = currentUser.uid;
       
       if (taskId.startsWith('routine-')) {
-        console.log('Handling routine completion');
-        // Handle routine completion through the API
         await api.toggleRoutineCompletion({
           routineId: taskId.replace('routine-', ''),
           userId,
           completed: !currentStatus
         });
       } else {
-        console.log('Handling task completion');
-        // Handle regular task completion through API
         if (currentStatus) {
-          console.log('Uncompleting task with ID:', taskId);
           await api.uncompleteTask(taskId, userId);
         } else {
-          console.log('Completing task with ID:', taskId);
           await api.completeTask(taskId, userId);
         }
       }

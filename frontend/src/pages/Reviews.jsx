@@ -277,9 +277,6 @@ function Reviews() {
                           </div>
                           
                           <div className="mt-4 flex justify-between items-center">
-                            <div className="text-sm text-gray-500">
-                              By {review.username} • {new Date(review.createdAt).toLocaleDateString()}
-                            </div>
                             <button 
                               className="text-sm text-lavender-600 hover:text-lavender-700 flex items-center"
                               onClick={() => handleHelpfulClick(review._id)}

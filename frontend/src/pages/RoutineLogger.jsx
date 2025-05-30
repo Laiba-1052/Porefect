@@ -46,11 +46,7 @@ function RoutineLogger() {
         setRoutines(routinesData);
         setProducts(productsData);
       } catch (err) {
-        console.error('Error details:', {
-          message: err.message,
-          stack: err.stack,
-          response: err.response?.data
-        });
+        console.error('Error details:', err);
         setError(err.message || 'Failed to fetch data');
       } finally {
         setLoading(false);
@@ -80,16 +76,21 @@ function RoutineLogger() {
   
   const closeAddStepModal = () => {
     setShowAddStepModal(false);
+    setNewStepName('');
+    setNewStepProduct('');
+    setNewStepNotes('');
   };
   
   const handleAddRoutine = async (e) => {
     e.preventDefault();
     
+    if (!currentUser) return;
+    
     try {
       const newRoutine = {
         name: newRoutineName,
         schedule: newRoutineTimeOfDay,
-        userId: currentUser?.uid,
+        userId: currentUser.uid,
         products: [],
         isActive: true
       };
@@ -97,34 +98,41 @@ function RoutineLogger() {
       const createdRoutine = await api.createRoutine(newRoutine);
       setRoutines([...routines, createdRoutine]);
       closeAddModal();
+      
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: 'Routine created successfully!'
+      });
     } catch (err) {
       console.error('Error creating routine:', err);
-      setError('Failed to create routine: ' + err.message);
+      setToast({
+        type: 'error',
+        message: 'Failed to create routine: ' + err.message
+      });
     }
   };
   
   const handleAddStep = async (e) => {
     e.preventDefault();
     
-    if (!currentRoutine) return;
+    if (!currentUser || !currentRoutine) return;
     
     try {
-      console.log('Adding step with product:', newStepProduct);
       const selectedProduct = products.find(p => p._id === newStepProduct);
-      console.log('Selected product:', selectedProduct);
       
       const updatedProducts = [...currentRoutine.products, {
         name: selectedProduct ? selectedProduct.name : newStepName,
         category: selectedProduct ? selectedProduct.category : '',
-        frequency: 'daily', // default frequency
+        frequency: 'daily',
         notes: newStepNotes,
-        productId: selectedProduct ? selectedProduct._id : null // Store the reference to the product
+        productId: selectedProduct ? selectedProduct._id : null
       }];
       
       const updatedRoutine = await api.updateRoutine(currentRoutine._id, {
         ...currentRoutine,
         products: updatedProducts,
-        userId: currentUser?.uid
+        userId: currentUser.uid
       });
       
       setRoutines(routines.map(routine => 
@@ -132,9 +140,18 @@ function RoutineLogger() {
       ));
       
       closeAddStepModal();
+      
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: 'Step added successfully!'
+      });
     } catch (err) {
       console.error('Error adding step:', err);
-      setError('Failed to add step: ' + err.message);
+      setToast({
+        type: 'error',
+        message: 'Failed to add step: ' + err.message
+      });
     }
   };
   
