@@ -15,11 +15,7 @@ router.get('/:userId', async (req, res) => {
 // Create a new routine
 router.post('/', async (req, res) => {
   try {
-    // For demo purposes, always use demo-user-123
-    const routineData = {
-      ...req.body,
-      userId: 'demo-user-123'
-    };
+    const routineData = req.body;
     const newRoutine = await routineService.createRoutine(routineData);
     res.status(201).json(newRoutine);
   } catch (error) {
@@ -30,14 +26,10 @@ router.post('/', async (req, res) => {
 // Update a routine
 router.patch('/:id', async (req, res) => {
   try {
-    // For demo purposes, always use demo-user-123
     const updatedRoutine = await routineService.updateRoutine(
       req.params.id,
-      'demo-user-123',
-      {
-        ...req.body,
-        userId: 'demo-user-123'
-      }
+      req.body.userId,
+      req.body
     );
     res.json(updatedRoutine);
   } catch (error) {
@@ -54,8 +46,7 @@ router.patch('/:id', async (req, res) => {
 // Delete a routine
 router.delete('/:id', async (req, res) => {
   try {
-    // For demo purposes, always use demo-user-123
-    const result = await routineService.deleteRoutine(req.params.id, 'demo-user-123');
+    const result = await routineService.deleteRoutine(req.params.id, req.body.userId);
     res.json(result);
   } catch (error) {
     if (error.message === 'Routine not found') {
