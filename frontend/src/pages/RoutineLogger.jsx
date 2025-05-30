@@ -28,6 +28,11 @@ function RoutineLogger() {
   // Fetch routines and products
   useEffect(() => {
     const fetchData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
         console.log('Starting to fetch data...');
         console.log('Current user:', currentUser?.email);
@@ -35,15 +40,15 @@ function RoutineLogger() {
         setLoading(true);
         setError(null);
         
-        // For testing, use the demo user ID since that's what's in our database
-        const testUserId = 'demo-user-123';
-        console.log('Using test user ID:', testUserId);
+        // Use the actual user ID
+        const userId = currentUser.uid;
+        console.log('Using user ID:', userId);
         
         // Fetch both routines and products
         console.log('Fetching routines and products...');
         const [routinesData, productsData] = await Promise.all([
-          api.getRoutines(testUserId),
-          api.getProducts(testUserId)
+          api.getRoutines(userId),
+          api.getProducts(userId)
         ]);
         
         console.log('Fetched routines:', routinesData);
@@ -63,9 +68,8 @@ function RoutineLogger() {
       }
     };
 
-    // For development, always fetch data regardless of user authentication
     fetchData();
-  }, []);
+  }, [currentUser]);
   
   const openAddModal = () => {
     setNewRoutineName('');
@@ -92,11 +96,19 @@ function RoutineLogger() {
   const handleAddRoutine = async (e) => {
     e.preventDefault();
     
+    if (!currentUser) {
+      setToast({
+        type: 'error',
+        message: 'Please log in to create a routine'
+      });
+      return;
+    }
+
     try {
       const newRoutine = {
         name: newRoutineName,
         schedule: newRoutineTimeOfDay,
-        userId: currentUser?.uid,
+        userId: currentUser.uid,
         products: [],
         isActive: true
       };
@@ -104,9 +116,18 @@ function RoutineLogger() {
       const createdRoutine = await api.createRoutine(newRoutine);
       setRoutines([...routines, createdRoutine]);
       closeAddModal();
+      
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `${newRoutineName} routine has been created!`
+      });
     } catch (err) {
       console.error('Error creating routine:', err);
-      setError('Failed to create routine: ' + err.message);
+      setToast({
+        type: 'error',
+        message: 'Failed to create routine: ' + err.message
+      });
     }
   };
   
@@ -131,7 +152,7 @@ function RoutineLogger() {
       const updatedRoutine = await api.updateRoutine(currentRoutine._id, {
         ...currentRoutine,
         products: updatedProducts,
-        userId: 'demo-user-123' // For testing, use the demo user ID
+        userId: currentUser?.uid
       });
       
       setRoutines(routines.map(routine => 
@@ -146,6 +167,8 @@ function RoutineLogger() {
   };
   
   const handleCompleteRoutine = async (routineId) => {
+    if (!currentUser) return;
+
     try {
       const routineToUpdate = routines.find(r => r._id === routineId);
       if (!routineToUpdate) return;
@@ -153,7 +176,7 @@ function RoutineLogger() {
       const updatedRoutine = await api.updateRoutine(routineId, {
         ...routineToUpdate,
         lastCompleted: new Date().toISOString(),
-        userId: currentUser?.uid
+        userId: currentUser.uid
       });
       
       setRoutines(routines.map(routine => 

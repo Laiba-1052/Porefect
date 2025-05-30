@@ -28,12 +28,17 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-
-        // For demo purposes, use demo-user-123
-        const userId = 'demo-user-123';
+        
+        // Use the actual user ID from Firebase Auth
+        const userId = currentUser.uid;
         
         // Fetch dashboard data using the new endpoint
         const response = await api.getDashboard(userId);
@@ -51,18 +56,20 @@ function Dashboard() {
     };
 
     fetchDashboardData();
-  }, [currentUser?.skinType]);
+  }, [currentUser]);
 
   const handleAddSuggestedRoutine = async (routine) => {
+    if (!currentUser) return;
+
     try {
       await api.addSuggestedRoutine({
-        userId: 'demo-user-123', // For demo purposes
+        userId: currentUser.uid,
         routineName: routine.name,
         steps: routine.steps
       });
 
       // Refresh dashboard data after adding routine
-      const updatedDashboard = await api.getDashboard('demo-user-123');
+      const updatedDashboard = await api.getDashboard(currentUser.uid);
       setDashboardData(updatedDashboard);
 
       // Show success toast
@@ -85,9 +92,11 @@ function Dashboard() {
   };
 
   const handleToggleTaskCompletion = async (taskId, currentStatus) => {
+    if (!currentUser) return;
+
     try {
       console.log('Attempting to toggle task:', { taskId, currentStatus });
-      const userId = 'demo-user-123'; // For demo purposes
+      const userId = currentUser.uid;
       
       if (taskId.startsWith('routine-')) {
         console.log('Handling routine completion');
