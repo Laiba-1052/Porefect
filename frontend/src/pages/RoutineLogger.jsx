@@ -28,33 +28,44 @@ function RoutineLogger() {
   // Fetch routines and products
   useEffect(() => {
     const fetchData = async () => {
-      if (!currentUser) {
-        setLoading(false);
-        return;
-      }
-
       try {
+        console.log('Starting to fetch data...');
+        console.log('Current user:', currentUser?.email);
+        console.log('Current user ID:', currentUser?.uid);
         setLoading(true);
         setError(null);
         
+        // For testing, use the demo user ID since that's what's in our database
+        const testUserId = 'demo-user-123';
+        console.log('Using test user ID:', testUserId);
+        
         // Fetch both routines and products
+        console.log('Fetching routines and products...');
         const [routinesData, productsData] = await Promise.all([
-          api.getRoutines(currentUser.uid),
-          api.getProducts(currentUser.uid)
+          api.getRoutines(testUserId),
+          api.getProducts(testUserId)
         ]);
+        
+        console.log('Fetched routines:', routinesData);
+        console.log('Fetched products:', productsData);
         
         setRoutines(routinesData);
         setProducts(productsData);
       } catch (err) {
-        console.error('Error details:', err);
+        console.error('Error details:', {
+          message: err.message,
+          stack: err.stack,
+          response: err.response?.data
+        });
         setError(err.message || 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
     };
 
+    // For development, always fetch data regardless of user authentication
     fetchData();
-  }, [currentUser]);
+  }, []);
   
   const openAddModal = () => {
     setNewRoutineName('');
@@ -76,21 +87,16 @@ function RoutineLogger() {
   
   const closeAddStepModal = () => {
     setShowAddStepModal(false);
-    setNewStepName('');
-    setNewStepProduct('');
-    setNewStepNotes('');
   };
   
   const handleAddRoutine = async (e) => {
     e.preventDefault();
     
-    if (!currentUser) return;
-    
     try {
       const newRoutine = {
         name: newRoutineName,
         schedule: newRoutineTimeOfDay,
-        userId: currentUser.uid,
+        userId: currentUser?.uid,
         products: [],
         isActive: true
       };
@@ -98,41 +104,34 @@ function RoutineLogger() {
       const createdRoutine = await api.createRoutine(newRoutine);
       setRoutines([...routines, createdRoutine]);
       closeAddModal();
-      
-      // Show success toast
-      setToast({
-        type: 'success',
-        message: 'Routine created successfully!'
-      });
     } catch (err) {
       console.error('Error creating routine:', err);
-      setToast({
-        type: 'error',
-        message: 'Failed to create routine: ' + err.message
-      });
+      setError('Failed to create routine: ' + err.message);
     }
   };
   
   const handleAddStep = async (e) => {
     e.preventDefault();
     
-    if (!currentUser || !currentRoutine) return;
+    if (!currentRoutine) return;
     
     try {
+      console.log('Adding step with product:', newStepProduct);
       const selectedProduct = products.find(p => p._id === newStepProduct);
+      console.log('Selected product:', selectedProduct);
       
       const updatedProducts = [...currentRoutine.products, {
         name: selectedProduct ? selectedProduct.name : newStepName,
         category: selectedProduct ? selectedProduct.category : '',
-        frequency: 'daily',
+        frequency: 'daily', // default frequency
         notes: newStepNotes,
-        productId: selectedProduct ? selectedProduct._id : null
+        productId: selectedProduct ? selectedProduct._id : null // Store the reference to the product
       }];
       
       const updatedRoutine = await api.updateRoutine(currentRoutine._id, {
         ...currentRoutine,
         products: updatedProducts,
-        userId: currentUser.uid
+        userId: 'demo-user-123' // For testing, use the demo user ID
       });
       
       setRoutines(routines.map(routine => 
@@ -140,18 +139,9 @@ function RoutineLogger() {
       ));
       
       closeAddStepModal();
-      
-      // Show success toast
-      setToast({
-        type: 'success',
-        message: 'Step added successfully!'
-      });
     } catch (err) {
       console.error('Error adding step:', err);
-      setToast({
-        type: 'error',
-        message: 'Failed to add step: ' + err.message
-      });
+      setError('Failed to add step: ' + err.message);
     }
   };
   

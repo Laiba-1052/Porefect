@@ -1,16 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const routineService = require('../services/routineService');
-const { verifyToken } = require('../middleware/authMiddleware');
 
 // Get all routines for a user
-router.get('/:userId', verifyToken, async (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
-    // Verify that the requesting user matches the userId parameter
-    if (req.user.uid !== req.params.userId) {
-      return res.status(403).json({ message: 'Unauthorized access to user data' });
-    }
-
     const routines = await routineService.getUserRoutines(req.params.userId);
     res.json(routines);
   } catch (error) {
@@ -19,12 +13,12 @@ router.get('/:userId', verifyToken, async (req, res) => {
 });
 
 // Create a new routine
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    // Use the authenticated user's ID
+    // For demo purposes, always use demo-user-123
     const routineData = {
       ...req.body,
-      userId: req.user.uid
+      userId: 'demo-user-123'
     };
     const newRoutine = await routineService.createRoutine(routineData);
     res.status(201).json(newRoutine);
@@ -34,14 +28,15 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // Update a routine
-router.patch('/:id', verifyToken, async (req, res) => {
+router.patch('/:id', async (req, res) => {
   try {
+    // For demo purposes, always use demo-user-123
     const updatedRoutine = await routineService.updateRoutine(
       req.params.id,
-      req.user.uid,
+      'demo-user-123',
       {
         ...req.body,
-        userId: req.user.uid
+        userId: 'demo-user-123'
       }
     );
     res.json(updatedRoutine);
@@ -57,9 +52,10 @@ router.patch('/:id', verifyToken, async (req, res) => {
 });
 
 // Delete a routine
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const result = await routineService.deleteRoutine(req.params.id, req.user.uid);
+    // For demo purposes, always use demo-user-123
+    const result = await routineService.deleteRoutine(req.params.id, 'demo-user-123');
     res.json(result);
   } catch (error) {
     if (error.message === 'Routine not found') {

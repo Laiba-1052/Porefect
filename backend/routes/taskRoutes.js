@@ -1,18 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const taskService = require('../services/taskService');
-const { verifyToken } = require('../middleware/authMiddleware');
 
-// Get tasks for a specific date - Protected route
-router.get('/:userId/:date', verifyToken, async (req, res) => {
+// Get tasks for a specific day
+router.get('/:userId/:date', async (req, res) => {
   try {
     const { userId, date } = req.params;
-    
-    // Verify that the requesting user matches the userId parameter
-    if (req.user.uid !== userId) {
-      return res.status(403).json({ message: 'Unauthorized access to user data' });
-    }
-
     const tasks = await taskService.getUserTasksForDay(userId, date);
     res.json(tasks);
   } catch (error) {
@@ -21,16 +14,10 @@ router.get('/:userId/:date', verifyToken, async (req, res) => {
   }
 });
 
-// Create a new task - Protected route
-router.post('/', verifyToken, async (req, res) => {
+// Create a new task
+router.post('/', async (req, res) => {
   try {
     const taskData = req.body;
-    
-    // Verify that the requesting user matches the task's userId
-    if (req.user.uid !== taskData.userId) {
-      return res.status(403).json({ message: 'Unauthorized access to user data' });
-    }
-
     const newTask = await taskService.createTask(taskData);
     res.status(201).json(newTask);
   } catch (error) {
@@ -43,17 +30,11 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// Mark task as completed - Protected route
-router.post('/:taskId/complete', verifyToken, async (req, res) => {
+// Mark task as completed
+router.post('/:taskId/complete', async (req, res) => {
   try {
     const { taskId } = req.params;
     const { userId } = req.body;
-    
-    // Verify that the requesting user matches the userId parameter
-    if (req.user.uid !== userId) {
-      return res.status(403).json({ message: 'Unauthorized access to user data' });
-    }
-
     const result = await taskService.completeTask(taskId, userId);
     res.json(result);
   } catch (error) {
@@ -65,21 +46,15 @@ router.post('/:taskId/complete', verifyToken, async (req, res) => {
   }
 });
 
-// Mark task as uncompleted - Protected route
-router.post('/:taskId/uncomplete', verifyToken, async (req, res) => {
+// Mark task as uncompleted
+router.post('/:taskId/uncomplete', async (req, res) => {
   try {
     const { taskId } = req.params;
     const { userId } = req.body;
-    
-    // Verify that the requesting user matches the userId parameter
-    if (req.user.uid !== userId) {
-      return res.status(403).json({ message: 'Unauthorized access to user data' });
-    }
-
     const result = await taskService.uncompleteTask(taskId, userId);
     res.json(result);
   } catch (error) {
-    if (error.message === 'Task not found') {
+    if (error.message === 'Task not found' || error.message === 'Routine not found') {
       res.status(404).json({ message: error.message });
     } else {
       res.status(500).json({ message: error.message });

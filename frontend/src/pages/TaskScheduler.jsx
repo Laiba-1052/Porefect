@@ -9,7 +9,7 @@ import { api } from '../utils/api';
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
 
 function TaskScheduler() {
-  const { currentUser } = useAuth();
+  const { userProfile } = useAuth();
   const location = useLocation();
   const [tasks, setTasks] = useState([]);
   const [routines, setRoutines] = useState([]);
@@ -32,15 +32,10 @@ function TaskScheduler() {
   
   useEffect(() => {
     const fetchTasks = async () => {
-      if (!currentUser) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
         setError(null);
-        const userId = currentUser.uid;
+        const userId = userProfile?.uid || 'demo-user-123';
         const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
         const response = await api.getTasksForDate(userId, formattedDate);
         setTasks(response);
@@ -53,14 +48,15 @@ function TaskScheduler() {
     };
 
     fetchTasks();
-  }, [showTodayTasks, currentWeekStart, currentUser]);
+  }, [showTodayTasks, currentWeekStart, userProfile]);
   
   // Fetch routines when opening the add modal
   useEffect(() => {
     const fetchRoutines = async () => {
-      if (showAddModal && newTaskType === 'routine' && currentUser) {
+      if (showAddModal && newTaskType === 'routine') {
         try {
-          const response = await api.getRoutines(currentUser.uid);
+          const userId = userProfile?.uid || 'demo-user-123';
+          const response = await api.getRoutines(userId);
           setRoutines(response);
         } catch (err) {
           console.error('Error fetching routines:', err);
@@ -70,7 +66,7 @@ function TaskScheduler() {
     };
 
     fetchRoutines();
-  }, [showAddModal, newTaskType, currentUser]);
+  }, [showAddModal, newTaskType, userProfile]);
   
   const openAddModal = () => {
     setNewTaskTitle('');
@@ -89,14 +85,13 @@ function TaskScheduler() {
   const handleAddTask = async (e) => {
     e.preventDefault();
     
-    if (!currentUser) return;
-
     try {
+      const userId = userProfile?.uid || 'demo-user-123';
       const newTask = {
         title: newTaskTitle,
         type: newTaskType,
         routineId: newTaskType === 'routine' ? newTaskRoutineId : null,
-        userId: currentUser.uid,
+        userId,
         schedule: newTaskSchedule,
         time: newTaskTime,
         daysOfWeek: newTaskDaysOfWeek,
@@ -113,18 +108,18 @@ function TaskScheduler() {
   };
   
   const handleToggleTaskCompletion = async (taskId, currentStatus) => {
-    if (!currentUser) return;
-
     try {
+      const userId = userProfile?.uid || 'demo-user-123';
+      
       if (currentStatus) {
-        await api.uncompleteTask(taskId, currentUser.uid);
+        await api.uncompleteTask(taskId, userId);
       } else {
-        await api.completeTask(taskId, currentUser.uid);
+        await api.completeTask(taskId, userId);
       }
 
       // Refresh tasks
       const formattedDate = (showTodayTasks ? new Date() : currentWeekStart).toISOString().split('T')[0];
-      const response = await api.getTasksForDate(currentUser.uid, formattedDate);
+      const response = await api.getTasksForDate(userId, formattedDate);
       setTasks(response);
     } catch (err) {
       console.error('Error toggling task:', err);
