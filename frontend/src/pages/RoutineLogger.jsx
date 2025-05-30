@@ -48,14 +48,21 @@ function RoutineLogger() {
         console.log('Fetching routines and products...');
         const [routinesData, productsData] = await Promise.all([
           api.getRoutines(userId),
-          api.getProducts(userId)
+          api.getAllProducts()
         ]);
         
         console.log('Fetched routines:', routinesData);
         console.log('Fetched products:', productsData);
         
+        if (!Array.isArray(productsData)) {
+          console.error('Products data is not an array:', productsData);
+          throw new Error('Invalid products data received');
+        }
+        
         setRoutines(routinesData);
         setProducts(productsData);
+        
+        console.log('Updated products state:', productsData);
       } catch (err) {
         console.error('Error details:', {
           message: err.message,
@@ -63,6 +70,10 @@ function RoutineLogger() {
           response: err.response?.data
         });
         setError(err.message || 'Failed to fetch data');
+        setToast({
+          type: 'error',
+          message: 'Failed to load data: ' + err.message
+        });
       } finally {
         setLoading(false);
       }
@@ -82,6 +93,8 @@ function RoutineLogger() {
   };
   
   const openAddStepModal = (routine) => {
+    console.log('Opening add step modal for routine:', routine);
+    console.log('Available products:', products);
     setCurrentRoutine(routine);
     setNewStepName('');
     setNewStepProduct('');
@@ -91,6 +104,9 @@ function RoutineLogger() {
   
   const closeAddStepModal = () => {
     setShowAddStepModal(false);
+    setNewStepName('');
+    setNewStepProduct('');
+    setNewStepNotes('');
   };
   
   const handleAddRoutine = async (e) => {
@@ -138,6 +154,7 @@ function RoutineLogger() {
     
     try {
       console.log('Adding step with product:', newStepProduct);
+      console.log('All products:', products);
       const selectedProduct = products.find(p => p._id === newStepProduct);
       console.log('Selected product:', selectedProduct);
       
@@ -149,20 +166,33 @@ function RoutineLogger() {
         productId: selectedProduct ? selectedProduct._id : null // Store the reference to the product
       }];
       
+      console.log('Updated products array:', updatedProducts);
+      
       const updatedRoutine = await api.updateRoutine(currentRoutine._id, {
         ...currentRoutine,
         products: updatedProducts,
         userId: currentUser?.uid
       });
       
+      console.log('Updated routine response:', updatedRoutine);
+      
       setRoutines(routines.map(routine => 
         routine._id === currentRoutine._id ? updatedRoutine : routine
       ));
       
+      // Show success toast
+      setToast({
+        type: 'success',
+        message: `Step added to ${currentRoutine.name}`
+      });
+      
       closeAddStepModal();
     } catch (err) {
       console.error('Error adding step:', err);
-      setError('Failed to add step: ' + err.message);
+      setToast({
+        type: 'error',
+        message: 'Failed to add step: ' + err.message
+      });
     }
   };
   
@@ -490,16 +520,21 @@ function RoutineLogger() {
                     setNewStepProduct(e.target.value);
                     if (e.target.value) {
                       const product = products.find(p => p._id === e.target.value);
+                      console.log('Found product:', product);
                       setNewStepName(product?.name || '');
                     }
                   }}
                 >
                   <option value="">Select a product</option>
-                  {products.map(product => (
-                    <option key={product._id} value={product._id}>
-                      {product.name} ({product.category})
-                    </option>
-                  ))}
+                  {Array.isArray(products) && products.length > 0 ? (
+                    products.map(product => (
+                      <option key={product._id} value={product._id}>
+                        {product.name} ({product.category || 'No category'})
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No products available</option>
+                  )}
                 </select>
               </div>
 

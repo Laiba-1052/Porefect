@@ -67,6 +67,7 @@ export const api = {
   toggleRoutineCompletion: (data) => apiRequest('POST', `/routines/${data.routineId}/toggle-completion`, data),
 
   // Products
+  getAllProducts: () => apiRequest('GET', '/products'),
   getProducts: (userId) => apiRequest('GET', `/products/${userId}`),
   createProduct: (data) => apiRequest('POST', '/products', data),
   updateProduct: (id, data) => apiRequest('PATCH', `/products/${id}`, data),

@@ -1,6 +1,15 @@
 const Product = require('../models/Product');
 
 const productService = {
+  // Get all products (no userId filter)
+  async getAllProducts() {
+    try {
+      return await Product.find().sort({ createdAt: -1 });
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get all products for a user
   async getUserProducts(userId) {
     try {

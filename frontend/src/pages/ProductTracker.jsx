@@ -7,7 +7,7 @@ import { format, differenceInDays } from 'date-fns';
 import { api } from '../utils/api';
 
 function ProductTracker() {
-  const { userProfile } = useAuth();
+  const { currentUser } = useAuth();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,11 +30,18 @@ function ProductTracker() {
   
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!currentUser) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError(null);
-        const userId = userProfile?.uid || 'demo-user-123';
+        const userId = currentUser.uid;
+        console.log('Fetching products for user:', userId);
         const response = await api.getProducts(userId);
+        console.log('Fetched products:', response);
         setProducts(response);
         setFilteredProducts(response);
       } catch (error) {
@@ -46,7 +53,7 @@ function ProductTracker() {
     };
 
     fetchProducts();
-  }, [userProfile]);
+  }, [currentUser]);
   
   useEffect(() => {
     let filtered = products;

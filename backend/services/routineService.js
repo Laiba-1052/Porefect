@@ -54,6 +54,7 @@ const routineService = {
       
       // Handle products array update
       if (routineData.products) {
+        console.log('Updating products array:', routineData.products);
         // Ensure each product has the required fields
         routine.products = routineData.products.map(product => ({
           name: product.name,
