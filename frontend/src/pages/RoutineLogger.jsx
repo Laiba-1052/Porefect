@@ -28,26 +28,20 @@ function RoutineLogger() {
   // Fetch routines and products
   useEffect(() => {
     const fetchData = async () => {
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        console.log('Starting to fetch data...');
-        console.log('Current user:', currentUser?.email);
-        console.log('Current user ID:', currentUser?.uid);
         setLoading(true);
         setError(null);
         
-        // For testing, use the demo user ID since that's what's in our database
-        const testUserId = 'demo-user-123';
-        console.log('Using test user ID:', testUserId);
-        
         // Fetch both routines and products
-        console.log('Fetching routines and products...');
         const [routinesData, productsData] = await Promise.all([
-          api.getRoutines(testUserId),
-          api.getProducts(testUserId)
+          api.getRoutines(currentUser.uid),
+          api.getProducts(currentUser.uid)
         ]);
-        
-        console.log('Fetched routines:', routinesData);
-        console.log('Fetched products:', productsData);
         
         setRoutines(routinesData);
         setProducts(productsData);
@@ -63,9 +57,8 @@ function RoutineLogger() {
       }
     };
 
-    // For development, always fetch data regardless of user authentication
     fetchData();
-  }, []);
+  }, [currentUser]);
   
   const openAddModal = () => {
     setNewRoutineName('');
@@ -131,7 +124,7 @@ function RoutineLogger() {
       const updatedRoutine = await api.updateRoutine(currentRoutine._id, {
         ...currentRoutine,
         products: updatedProducts,
-        userId: 'demo-user-123' // For testing, use the demo user ID
+        userId: currentUser?.uid
       });
       
       setRoutines(routines.map(routine => 

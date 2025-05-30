@@ -3,11 +3,17 @@ const router = express.Router();
 const Routine = require('../models/Routine');
 const Product = require('../models/Product');
 const Task = require('../models/Task');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-// Get dashboard data
-router.get('/:userId', async (req, res) => {
+// Get dashboard data - Protected route
+router.get('/:userId', verifyToken, async (req, res) => {
   try {
     const userId = req.params.userId;
+    
+    // Verify that the requesting user matches the userId parameter
+    if (req.user.uid !== userId) {
+      return res.status(403).json({ message: 'Unauthorized access to user data' });
+    }
 
     // Get routines
     const routines = await Routine.find({ userId })
