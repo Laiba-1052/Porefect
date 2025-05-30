@@ -40,7 +40,7 @@ function ProductTracker() {
         setError(null);
         const userId = currentUser.uid;
         console.log('Fetching products for user:', userId);
-        const response = await api.getProducts(userId);
+        const response = await api.getAllProducts(userId);
         console.log('Fetched products:', response);
         setProducts(response);
         setFilteredProducts(response);
